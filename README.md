@@ -6,3 +6,6 @@ I don't own any of names or refences made of the manga neither the original game
 
 # DESCRIPTION
 one_poker_bot is a telegram bot that emulates the game that Kazuya and Kaiji play in the **Nobuyuki Fukumoto**'s manga *Tobaku Datenroku Kaiji: One Poker Hen*.
+
+# DEPENDENCIES
+This bot uses [Python Telegram Bot](https://github.com/python-telegram-bot/python-telegram-bot)
