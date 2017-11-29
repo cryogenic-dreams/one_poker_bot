@@ -17,3 +17,9 @@ def isUPorDOWN(card): #ideally, this will be in a different class named card, bu
 		return 'DOWN'
 	else:
 		return 'UP'
+def setBet(self, quantity):
+	if (quantity <= self.lifes):
+		self.lifes = self.lifes - quantity
+		self.bet = self.bet + quantity
+	else:
+		return false
