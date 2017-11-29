@@ -1,11 +1,13 @@
 class Player:
 	LIFES = 10
+	BET = 0
 
 def __init__(self, hand, id, name):
 	self.hand = hand
 	self.id = id
 	self.name = name
 	self.lifes = LIFES
+	self.bet = BET
 	
 def displayStatus(self):
 	return 'Player ' + self.name + ': ' + isUPorDOWN(self.hand[0]) + ' | ' + isUPorDOWN(self.hand[1])
