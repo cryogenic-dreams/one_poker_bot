@@ -18,11 +18,11 @@ class Game:
 	
 	def giveCards(self, firstP):
 		if (firstP==1):
-			self.player1 = giveCard(self, self.player1)
-			self.player2 = giveCard(self, self.player2)
+			self.player1 = self.giveCard(self.player1)
+			self.player2 = self.giveCard(self.player2)
 		else:
-			self.player2 = giveCard(self, self.player2)
-			self.player1 = giveCard(self, self.player1)
+			self.player2 = self.giveCard(self.player2)
+			self.player1 = self.giveCard(self.player1)
 	
 	def giveCard(self, player):
 		if len(deck) != 0:
@@ -38,7 +38,7 @@ class Game:
 	card1 = self.player1.hand[choice1]
 	card2 = self.player2.hand[choice2]
 	
-	disposeCards(self, choice1, choice2)
+	self.disposeCards(choice1, choice2)
 	
 	if('clubs' in card1):
 		i1 = clubs.index(card1)
