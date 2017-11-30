@@ -52,7 +52,7 @@ def freeasinfreedom(bot, update):
     """Send a message when the command /rules is issued."""
     bot.send_message(update.message.chat_id, FREEDOM)
 
-def status(bot, update, hand1, hand2):
+def status(bot, update):
     """Send the UPs and DOWNs of the players when the command /status is issued."""
     chat_id = update.message.chat_id
     update.message.reply_text(chats[chat_id].player1.displayStatus())
@@ -63,23 +63,26 @@ def participate(bot, update):
     """after second input, start the actual game"""
     chat_id = update.message.chat_id
     name = update.message.from_user.first_name
-    if (not(chats.has_key(chat_id))):
+    if (chats.get(chat_id) is None):
         update.message.reply_text('Entry completed.\n' + name + ': 10 Lives.')
-		p1 = Player(name)
-		game = Game(chat_id, p1, None, [], [])
+	p1 = Player(name)
+	game = Game(chat_id, p1, None, [], [], [])
     	chats[chat_id] = game
     else:
-		if(chats[chat_id].player2 is None):
-			p2 = Player(name)
-			chats[chat_id].player2 = p2
-			update.message.reply_text('Entry completed.\n' + name + ': 10 Lives.')
-			#once the players are set, lets give em cards
-			bot.send_message(update.message.chat_id, GAME_STARTS)
-			chats[chat_id].giveCards(1)
-			chats[chat_id].giveCards(1) #give 2 cards for the 1st time
-		else:
-			update.message.reply_text('There is a maximum of 2 players in this game.')
-	bot.send_message(update.message.chat_id, SELECT_CARD)		
+	if(chats[chat_id].player2 is None):
+		p2 = Player(name)
+		chats[chat_id].player2 = p2
+		update.message.reply_text('Entry completed.\n' + name + ': 10 Lives.')
+		#once the players are set, lets give em cards
+		bot.send_message(update.message.chat_id, GAME_STARTS)
+		chats[chat_id].giveCards(1)
+		chats[chat_id].giveCards(1) #give 2 cards for the 1st time
+		update.message.reply_text(chats[chat_id].player1.displayStatus())
+    		update.message.reply_text(chats[chat_id].player2.displayStatus())
+		bot.send_message(update.message.chat_id, SELECT_CARD)
+	else:
+		update.message.reply_text('There is a maximum of 2 players in this game.')
+    		
     print chats
 	
 def raiseBet(bot, update):
@@ -96,6 +99,10 @@ def scores(bot, update):
 
 def endgame(bot, update):
     """End the game, like quit, but there are not winners nor losers"""
+    chat_id = update.message.chat_id
+    bot.send_message(chat_id, 'Game ends.')
+    if(chats.has_key(chat_id)):
+    	del chats[chat_id]
 	
 def zawa(bot, update):
     """Every 1 to 10 minutes (randomly) bot posts a zawa (ざわ) message. It's a switcher, typing it for the 1st enables and the 2nd time disables it"""
