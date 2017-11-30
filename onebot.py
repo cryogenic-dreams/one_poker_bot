@@ -19,7 +19,16 @@ RULES = 'One Poker is a game in which two people play following these rules:\n1.
 HELP = 'Here is a list of all the commands Mother Sophie has:\n /disclaimer\n /endgame\n /freeasinfreedom - Link to the code in github.\n /fold\n /help - This command.\n /participate - Starts a new game.\n /quit - Players cannot quit One Poker irl but here you can.\n /raise\n /rules\n /scores - Display how the game goes so far, including cards, victories\n /start\n /state\n /zawa\n'
 DISCLAIMER = 'I don not own any of names or refences made of the manga neither the original gameplay idea of One Poker.'
 FREEDOM = 'If you want a copy of the code, you can have it in my github: https://github.com/cryogenic-dreams/one_poker_bot/'
-chats={} #this shit right here is to have a control over games and chats
+GAME_STARTS = 'The game will start now.\nEach player will receive two cards.'
+SELECT_CARD = 'Please select your card.'
+SELECTION_COMPLETED = 'Card selection has been completed.\nNow proceeding to betting phase.'
+QUESTION = 'Check or bet?'
+CHECK = 'Both players check.'
+BET_COMPL = 'Betting complete.'
+BET2 = 'The betting phase has been completed.'
+CARD_REV = 'Now revealing the cards.'
+WIN = 'The winner is '
+chats={}
 
 
 def start(bot, update):
@@ -55,7 +64,7 @@ def participate(bot, update):
     chat_id = update.message.chat_id
     name = update.message.from_user.first_name
     if (not(chats.has_key(chat_id))):
-        update.message.reply_text('Hello ' + name + ', you are player 1')
+        update.message.reply_text('Entry completed.\n' + name + ': 10 Lives.')
 	p1 = Player(name)
 	game = Game(chat_id, p1, None, [], [])
     	chats[chat_id] = game
@@ -63,9 +72,11 @@ def participate(bot, update):
 	if(chats[chat_id].player2 is None):
 	    p2 = Player(name)
 	    chats[chat_id].player2 = p2
-    	    update.message.reply_text('Hello ' + name + ' you are player 2')
+    	update.message.reply_text('Entry completed.\n' + name + ': 10 Lives.')
 	    #once the players are set, lets give em cards
+		bot.send_message(update.message.chat_id, GAME_STARTS)
 	    chats[chat_id].giveCards(1)
+		chats[chat_id].giveCards(1)
 	else:
 	    update.message.reply_text('There is a maximum of 2 players in this game.')
     print chats
@@ -124,4 +135,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
