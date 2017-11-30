@@ -2,8 +2,9 @@ class Player:
 	LIVES = 10
 	BET = 0
 
-	def __init__ (self, name):
+	def __init__ (self, name, user):
 		self.hand = []
+		self.user = user
 		#self.id = id
 		self.name = name
 		self.lives = Player.LIVES
