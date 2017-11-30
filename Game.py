@@ -25,7 +25,6 @@ class Game:
 		else:
 			self.player2.hand = self.giveCard(self.player2)
 			self.player1.hand = self.giveCard(self.player1)
-			
 		if len(self.player1.hand) == 2: 
 			self.player1.displayStatus()
 			self.player2.displayStatus()
@@ -103,7 +102,6 @@ class Game:
 			
 		self.initBets()
 		return result
-			
 			
 	def initBets(self):
 		self.player1.bet = 0
