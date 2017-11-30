@@ -1,6 +1,6 @@
-# -*- encoding: utf 8 -*-
+# -*- coding: utf-8 -*-
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from telegram import ChatMember
+from telegram import ChatMember, KeyboardButton, ReplyKeyboardMarkup
 import logging
 from random import shuffle
 from Player import Player
@@ -12,7 +12,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
-TOKEN = "___SUPERSECRETTOKEN__" #write here your bot's token
+TOKEN = "____YOURBOTSTOKEN_____" #write here your bot's token
 GREETINGS = 'Welcome to One Poker. If you wish to participate, enter the command /participate'
 GREETINGS2 = 'Type /rules for an explanation of the game mechanics and /help to know the commands of this bot. Type /disclaimer to know further.'
 RULES = 'One Poker is a game in which two people play following these rules:\n1. Both of you will receive 10 lives, you can bet a minimum of 1 life in each round and a maximum of the lives you have at that moment.\n2.The game uses three decks of poker without the joker card, when . \n 3. Each player will receive 2 cards and will have in his hand always 2 cards. \n 4. The value of the cards is determined by its number, being DOWN cards: 2, 3, 4, 5, 6, 7 and UP cards: 8, 9, 10, J, Q, K, A. \n 5. The winning card is always the highest with the exception of the 2 that wins the Ace. \n 6. Once players receive their cards, both of them will be informed if they have UP or DOWN cards in their hand. \n 7. The game ends when one of the players loses all the lives.\n '
@@ -62,26 +62,32 @@ def participate(bot, update):
     """take id and name of the user"""
     """after second input, start the actual game"""
     chat_id = update.message.chat_id
-    name = update.message.from_user.first_name
+    user = update.message.from_user
+    name = user.first_name
     if (chats.get(chat_id) is None):
         update.message.reply_text('Entry completed.\n' + name + ': 10 Lives.')
-	p1 = Player(name)
+	p1 = Player(name, user)
 	game = Game(chat_id, p1, None, [], [], [])
     	chats[chat_id] = game
+	chats[chat_id].giveCards(1)
+	custom_keyboard = [['Select 1st card',chats[chat_id].player1.hand[0].decode('utf-8')], ['Select 2nd card',chats[chat_id].player1.hand[1].decode('utf-8')]]
+	reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective=True)
+	update.message.reply_text(SELECT_CARD, reply_markup=reply_markup)
     else:
 	if(chats[chat_id].player2 is None):
-		p2 = Player(name)
+		p2 = Player(name, user)
 		chats[chat_id].player2 = p2
 		update.message.reply_text('Entry completed.\n' + name + ': 10 Lives.')
 		#once the players are set, lets give em cards
 		bot.send_message(update.message.chat_id, GAME_STARTS)
-		chats[chat_id].giveCards(1)
-		chats[chat_id].giveCards(1) #give 2 cards for the 1st time
-		update.message.reply_text(chats[chat_id].player1.displayStatus())
-    		update.message.reply_text(chats[chat_id].player2.displayStatus())
-		bot.send_message(update.message.chat_id, SELECT_CARD)
+		chats[chat_id].giveCards(2) #give 2 cards for the 1st time
+		bot.send_message(chat_id, chats[chat_id].player1.displayStatus())
+    		bot.send_message(chat_id, chats[chat_id].player2.displayStatus())
+		custom_keyboard = [['Select 1st card',chats[chat_id].player2.hand[0].decode('utf-8')], ['Select 2nd card',chats[chat_id].player2.hand[1].decode('utf-8')]]
+		reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective=True)
+		update.message.reply_text(SELECT_CARD, reply_markup=reply_markup)
 	else:
-		update.message.reply_text('There is a maximum of 2 players in this game.')
+		update.message.reply_text('There are already two people playing')
     		
     print chats
 	
@@ -116,6 +122,18 @@ def error(bot, update, error):
     logger.warning('Update "%s" caused error "%s"', update, error)
 
 
+def build_menu(buttons,
+               n_cols,
+               header_buttons=None,
+               footer_buttons=None):
+    menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
+    if header_buttons:
+        menu.insert(0, header_buttons)
+    if footer_buttons:
+        menu.append(footer_buttons)
+    return menu
+
+
 def main():
 
     updater = Updater(TOKEN)
@@ -139,6 +157,8 @@ def main():
     dp.add_error_handler(error)
     updater.start_polling()
     updater.idle()
+
+
 
 
 if __name__ == '__main__':
