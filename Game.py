@@ -25,6 +25,7 @@ class Game:
 		else:
 			self.player2.hand = self.giveCard(self.player2)
 			self.player1.hand = self.giveCard(self.player1)
+			
 		if len(self.player1.hand) == 2: 
 			self.player1.displayStatus()
 			self.player2.displayStatus()
@@ -72,7 +73,7 @@ class Game:
 		elif (i1 == i2):
 			return 0 #players tie
 		elif (i1 > i2):#player 1 wins
-			if (i2 == 0 and i1==12): #unless it's a 2vsAce
+			if (i2 == 0 and i1 == 12): #unless it's a 2vsAce
 				return 2
 			else:
 				return 1
@@ -86,22 +87,22 @@ class Game:
 		self.player1.hand.remove(choice1)
 		self.player2.hand.remove(choice2)
 	
-	def manageResult(self, choice1, choice2): #save results and redistribute lifes
+	def manageResult(self, choice1, choice2): #save results and redistribute lives
 		result = self.winningCard(choice1, choice2)
 		victories.append(result)
 		if(result == 1):
 			#player 1 wins
-			self.player1.lifes = self.player1.lifes + self.player1.bet + self.player2.bet
-			self.initBets()
+			self.player1.lives = self.player1.lives + self.player1.bet + self.player2.bet
 		elif (result == 2):
 			#player 2 wins
-			self.player2.lifes = self.player2.lifes + self.player1.bet + self.player2.bet
-			self.initBets()
+			self.player2.lives = self.player2.lives + self.player1.bet + self.player2.bet
 		else:
 			#it's a tie
-			self.player1.lifes = self.player1.lifes + self.player1.bet
-			self.player2.lifes = self.player2.lifes + self.player2.bet
-			self.initBets()
+			self.player1.lives = self.player1.lives + self.player1.bet
+			self.player2.lives = self.player2.lives + self.player2.bet
+			
+		self.initBets()
+		return result
 			
 			
 	def initBets(self):
