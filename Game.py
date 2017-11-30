@@ -23,10 +23,10 @@ class Game:
 	def giveCards(self, firstP):
 		if (firstP == 1):
 			self.player1.hand.append(self.giveCard(self.player1))
-			self.player2.hand.append(self.giveCard(self.player2))
+			self.player1.hand.append(self.giveCard(self.player1))
 		else:
 			self.player2.hand.append(self.giveCard(self.player2))
-			self.player1.hand.append(self.giveCard(self.player1))
+			self.player2.hand.append(self.giveCard(self.player2))
 
 	
 	def giveCard(self, player):
