@@ -65,20 +65,21 @@ def participate(bot, update):
     name = update.message.from_user.first_name
     if (not(chats.has_key(chat_id))):
         update.message.reply_text('Entry completed.\n' + name + ': 10 Lives.')
-	p1 = Player(name)
-	game = Game(chat_id, p1, None, [], [])
+		p1 = Player(name)
+		game = Game(chat_id, p1, None, [], [])
     	chats[chat_id] = game
     else:
-	if(chats[chat_id].player2 is None):
-	    p2 = Player(name)
-	    chats[chat_id].player2 = p2
-    	update.message.reply_text('Entry completed.\n' + name + ': 10 Lives.')
-	    #once the players are set, lets give em cards
-		bot.send_message(update.message.chat_id, GAME_STARTS)
-	    chats[chat_id].giveCards(1)
-		chats[chat_id].giveCards(1)
-	else:
-	    update.message.reply_text('There is a maximum of 2 players in this game.')
+		if(chats[chat_id].player2 is None):
+			p2 = Player(name)
+			chats[chat_id].player2 = p2
+			update.message.reply_text('Entry completed.\n' + name + ': 10 Lives.')
+			#once the players are set, lets give em cards
+			bot.send_message(update.message.chat_id, GAME_STARTS)
+			chats[chat_id].giveCards(1)
+			chats[chat_id].giveCards(1) #give 2 cards for the 1st time
+		else:
+			update.message.reply_text('There is a maximum of 2 players in this game.')
+	bot.send_message(update.message.chat_id, SELECT_CARD)		
     print chats
 	
 def raiseBet(bot, update):
