@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from telegram import ChatMember, KeyboardButton, ReplyKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
+from telegram import ChatMember, KeyboardButton, ReplyKeyboardMarkup, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 import logging
 from random import shuffle
 from Player import Player
@@ -12,18 +12,19 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
-TOKEN = "____YOURBOTSTOKEN_____" #write here your bot's token
-GREETINGS = 'Welcome to One Poker. If you wish to participate, enter the command /participate'
+TOKEN = "___YOURBOTSTOKEN___" #write here your bot's token
+GREETINGS = '``` Welcome to One Poker. If you wish to participate, enter the command``` /participate'
 GREETINGS2 = 'Type /rules for an explanation of the game mechanics and /help to know the commands of this bot. Type /disclaimer to know further.'
 RULES = 'One Poker is a game in which two people play following these rules:\n1. Both of you will receive 10 lives, you can bet a minimum of 1 life in each round and a maximum of the lives you have at that moment.\n2.The game uses three decks of poker without the joker card, when . \n 3. Each player will receive 2 cards and will have in his hand always 2 cards. \n 4. The value of the cards is determined by its number, being DOWN cards: 2, 3, 4, 5, 6, 7 and UP cards: 8, 9, 10, J, Q, K, A. \n 5. The winning card is always the highest with the exception of the 2 that wins the Ace. \n 6. Once players receive their cards, both of them will be informed if they have UP or DOWN cards in their hand. \n 7. The game ends when one of the players loses all the lives.\n '
 HELP = 'Here is a list of all the commands Mother Sophie has:\n /disclaimer\n /endgame\n /freeasinfreedom - Link to the code in github.\n /fold\n /help - This command.\n /participate - Starts a new game.\n /quit - Players cannot quit One Poker irl but here you can.\n /raise\n /rules\n /scores - Display how the game goes so far, including cards, victories\n /start\n /state\n /zawa\n'
 DISCLAIMER = 'I don not own any of names or refences made of the manga neither the original gameplay idea of One Poker.'
 FREEDOM = 'If you want a copy of the code, you can have it in my github: https://github.com/cryogenic-dreams/one_poker_bot/'
-GAME_STARTS = 'The game will start now.\nEach player will receive two cards.'
-SELECT_CARD = 'Please select your card.'
-SELECTION_COMPLETED = 'Card selection has been completed.\nNow proceeding to betting phase.'
-QUESTION = 'Check or bet?'
-CHECK = 'Both players check.'
+GAME_STARTS = '``` The game will start now.\nEach player will receive two cards.```'
+CARDS = '``` These are your cards.```'
+SELECT_CARD = '``` Please select your card.```'
+SELECTION_COMPLETED = '``` Card selection has been completed.\nNow proceeding to betting phase.```'
+QUESTION = '``` Check or bet?```'
+CHECK = '``` Both players check.```'
 BET_COMPL = 'Betting complete.'
 BET2 = 'The betting phase has been completed.'
 CARD_REV = 'Now revealing the cards.'
@@ -32,24 +33,19 @@ chats={}
 
 
 def start(bot, update):
-    """Send greetings messages when the command /start is issued."""
-    update.message.reply_text(GREETINGS)
+    update.message.reply_text(GREETINGS, parse_mode = ParseMode.MARKDOWN)
     update.message.reply_text(GREETINGS2)
     
 def help(bot, update):
-    """Send a list of the commands when the command /help is issued."""
     update.message.reply_text(HELP)
 
 def rules(bot, update):
-    """Send a message when the command /rules is issued."""
     update.message.reply_text(RULES)
 
 def disclaimer(bot, update):
-    """Send a message when the command /rules is issued."""
     update.message.reply_text(DISCLAIMER)
     
 def freeasinfreedom(bot, update):
-    """Send a message when the command /rules is issued."""
     bot.send_message(update.message.chat_id, FREEDOM)
 
 def status(bot, update):
@@ -65,35 +61,56 @@ def participate(bot, update):
     user = update.message.from_user
     name = user.first_name
     if (chats.get(chat_id) is None):
-        update.message.reply_text('Entry completed.\n' + name + ': 10 Lives.')
-	p1 = Player(name, user)
+        update.message.reply_text('``` Entry completed.\n' + name + ': 10 Lives.```', parse_mode = ParseMode.MARKDOWN)
+	#create a new player
+	p1 = Player(name, user, [])
+	#create a new game
 	game = Game(chat_id, p1, None, [], [], [])
     	chats[chat_id] = game
 	chats[chat_id].giveCards(1)
-	custom_keyboard = [['Select 1st card',chats[chat_id].player1.hand[0].decode('utf-8')], ['Select 2nd card',chats[chat_id].player1.hand[1].decode('utf-8')]]
-	reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective=True)
-	update.message.reply_text(SELECT_CARD, reply_markup=reply_markup)
+	custom_keyboard = [[chats[chat_id].player1.hand[0].decode('utf-8')], [chats[chat_id].player1.hand[1].decode('utf-8')]]
+	reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = True)
+	update.message.reply_text(CARDS, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
     else:
 	if(chats[chat_id].player2 is None):
-		p2 = Player(name, user)
+		p2 = Player(name, user, [])
 		chats[chat_id].player2 = p2
-		update.message.reply_text('Entry completed.\n' + name + ': 10 Lives.')
+		update.message.reply_text('``` Entry completed.\n' + name + ': 10 Lives.```', parse_mode = ParseMode.MARKDOWN)
 		#once the players are set, lets give em cards
-		bot.send_message(update.message.chat_id, GAME_STARTS)
+		bot.send_message(update.message.chat_id, GAME_STARTS, parse_mode = ParseMode.MARKDOWN)
 		chats[chat_id].giveCards(2) #give 2 cards for the 1st time
-		bot.send_message(chat_id, chats[chat_id].player1.displayStatus())
-    		bot.send_message(chat_id, chats[chat_id].player2.displayStatus())
-		custom_keyboard = [['Select 1st card',chats[chat_id].player2.hand[0].decode('utf-8')], ['Select 2nd card',chats[chat_id].player2.hand[1].decode('utf-8')]]
-		reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective=True)
-		update.message.reply_text(SELECT_CARD, reply_markup=reply_markup)
+		#display their current UPs and DOWNs
+		bot.send_message(chat_id, chats[chat_id].player1.displayStatus(), parse_mode = ParseMode.MARKDOWN)
+    		bot.send_message(chat_id, chats[chat_id].player2.displayStatus(), parse_mode = ParseMode.MARKDOWN)
+		#here the player can see his hand
+		custom_keyboard = [[chats[chat_id].player2.hand[0].decode('utf-8')], [chats[chat_id].player2.hand[1].decode('utf-8')]]
+		reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = True) #turn selective ON so just this player receives the message
+		update.message.reply_text(CARDS, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
+		#here we create the actual selection menu of the cards so the choice remains secret
+		button_list = [
+    			InlineKeyboardButton("Select 1st card", callback_data=0),
+    			InlineKeyboardButton("Select 2nd card", callback_data=1),
+		]
+		reply_markup = InlineKeyboardMarkup(build_menu(button_list, n_cols=1))
+		bot.send_message(chat_id, SELECT_CARD, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
 	else:
-		update.message.reply_text('There are already two people playing')
+		update.message.reply_text('``` There are already two people playing.```', parse_mode = ParseMode.MARKDOWN)
     		
     print chats
 	
-def raiseBet(bot, update):
+def bet(bot, update):
     """Raise a bet"""
+    user = update.message.from_user
+    name = user.first_name
+    update.message.reply_text(name+' bets.')
 	
+def check(bot, update):
+    """Raise a bet"""
+    user = update.message.from_user
+    name = user.first_name
+    update.message.reply_text(name+' checks.')
+	
+
 def fold(bot, update):
     """Fold"""
 
@@ -121,6 +138,31 @@ def error(bot, update, error):
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, error)
 
+def card(bot, update):
+    query = update.callback_query
+    user = query.from_user
+    chat_id = query.message.chat_id
+    selected_card = query.data
+    if(chats[chat_id].player1.card_played == []) or (chats[chat_id].player1.card_played == []):
+    	bot.send_message(text="``` {} has selected a card.```".format(user.first_name), chat_id=query.message.chat_id, message_id=query.message.message_id, parse_mode = ParseMode.MARKDOWN)
+	if (chats[chat_id].player1.user == user):
+		chats[chat_id].player1.card_played = chats[chat_id].player1.hand[int(selected_card)]
+		chats[chat_id].player1.hand.remove(chats[chat_id].player1.hand[int(selected_card)])
+		print chats[chat_id].player1.card_played
+	elif (chats[chat_id].player2.user == user):
+		chats[chat_id].player2.card_played = chats[chat_id].player2.hand(int(selected_card))
+		chats[chat_id].player1.hand.remove(chats[chat_id].player1.hand[int(selected_card)])
+    else:	
+	if (chats[chat_id].player1.user == user and chats[chat_id].player1.card_played != []):
+		bot.send_message(text="``` {} has already selected a card.```".format(user.first_name), chat_id=query.message.chat_id, message_id=query.message.message_id, parse_mode = ParseMode.MARKDOWN)
+	elif (chats[chat_id].player2.user == user and chats[chat_id].player2.card_played != []):
+		bot.send_message(text="``` {} has already selected a card.```".format(user.first_name), chat_id=query.message.chat_id, message_id=query.message.message_id, parse_mode = ParseMode.MARKDOWN)
+	else:
+ 		bot.edit_message_text(text="``` {} has selected a card.```".format(user.first_name), chat_id=query.message.chat_id, message_id=query.message.message_id, parse_mode = ParseMode.MARKDOWN)
+		custom_keyboard = [['CHECK', 'BET']]
+		reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = False)
+		bot.send_message(chat_id, CARDS, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
+		
 
 def build_menu(buttons,
                n_cols,
@@ -145,10 +187,12 @@ def main():
     dp.add_handler(CommandHandler("rules", rules))
     dp.add_handler(CommandHandler("status", status))
     dp.add_handler(CommandHandler("participate", participate))
+    updater.dispatcher.add_handler(CallbackQueryHandler(card))
     dp.add_handler(CommandHandler("disclaimer", disclaimer))
     dp.add_handler(CommandHandler("freeasinfreedom", freeasinfreedom))
     dp.add_handler(CommandHandler("fold", fold))
-    dp.add_handler(CommandHandler("raise", raiseBet))
+    dp.add_handler(CommandHandler("bet", bet))
+    dp.add_handler(CommandHandler("check", check))
     dp.add_handler(CommandHandler("quit", quit))
     dp.add_handler(CommandHandler("endgame", endgame))
     dp.add_handler(CommandHandler("scores", scores))
