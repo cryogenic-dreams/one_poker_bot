@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
-from telegram import ChatMember, KeyboardButton, ReplyKeyboardMarkup, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, ConversationHandler
+from telegram import ChatMember, KeyboardButton, ReplyKeyboardMarkup, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove, ForceReply
 import logging
 from random import shuffle
 from Player import Player
@@ -17,7 +17,7 @@ GREETINGS = '``` Welcome to One Poker. If you wish to participate, enter the com
 GREETINGS2 = 'Type /rules for an explanation of the game mechanics and /help to know the commands of this bot. Type /disclaimer to know further.'
 RULES = 'One Poker is a game in which two people play following these rules:\n1. Both of you will receive 10 lives, you can bet a minimum of 1 life in each round and a maximum of the lives you have at that moment.\n2.The game uses three decks of poker without the joker card, when . \n 3. Each player will receive 2 cards and will have in his hand always 2 cards. \n 4. The value of the cards is determined by its number, being DOWN cards: 2, 3, 4, 5, 6, 7 and UP cards: 8, 9, 10, J, Q, K, A. \n 5. The winning card is always the highest with the exception of the 2 that wins the Ace. \n 6. Once players receive their cards, both of them will be informed if they have UP or DOWN cards in their hand. \n 7. The game ends when one of the players loses all the lives.\n '
 HELP = 'Here is a list of all the commands Mother Sophie has:\n /disclaimer\n /endgame\n /freeasinfreedom - Link to the code in github.\n /fold\n /help - This command.\n /participate - Starts a new game.\n /quit - Players cannot quit One Poker irl but here you can.\n /raise\n /rules\n /scores - Display how the game goes so far, including cards, victories\n /start\n /state\n /zawa\n'
-DISCLAIMER = 'I don not own any of names or refences made of the manga neither the original gameplay idea of One Poker.'
+DISCLAIMER = 'I do not own any of names or refences made of the manga neither the original gameplay idea of One Poker.'
 FREEDOM = 'If you want a copy of the code, you can have it in my github: https://github.com/cryogenic-dreams/one_poker_bot/'
 GAME_STARTS = '``` The game will start now.\nEach player will receive two cards.```'
 CARDS = '``` These are your cards.```'
@@ -25,12 +25,12 @@ SELECT_CARD = '``` Please select your card.```'
 SELECTION_COMPLETED = '``` Card selection has been completed.\nNow proceeding to betting phase.```'
 QUESTION = '``` Check or bet?```'
 CHECK = '``` Both players check.```'
-BET_COMPL = 'Betting complete.'
-BET2 = 'The betting phase has been completed.'
-CARD_REV = 'Now revealing the cards.'
-WIN = 'The winner is '
+BET_COMPL = '``` Betting complete.```'
+BET2 = '```The betting phase has been completed.```'
+CARD_REV = '``` Now revealing the cards.```'
+WIN = '```The winner is %s ```'
 chats={}
-
+LIVES,FOLD,ECHO = range(3)
 
 def start(bot, update):
     update.message.reply_text(GREETINGS, parse_mode = ParseMode.MARKDOWN)
@@ -102,7 +102,9 @@ def bet(bot, update):
     """Raise a bet"""
     user = update.message.from_user
     name = user.first_name
-    update.message.reply_text(name+' bets.')
+    reply_markup=ForceReply(force_reply=True, selective = True)
+    update.message.reply_text('Input lives to bet.', reply_markup=reply_markup)
+    return LIVES
 	
 def check(bot, update):
     """Raise a bet"""
@@ -113,10 +115,12 @@ def check(bot, update):
 
 def fold(bot, update):
     """Fold"""
+    return ConversationHandler.END
+
 
 def quit(bot, update):
-    """Player that sends the message quits the game"""
-	
+    """Player quits"""
+
 def scores(bot, update):
     """Prints all the matches in a game"""
 
@@ -133,6 +137,11 @@ def zawa(bot, update):
 def echo(bot, update):
     """Lets keep the tutorial's examples from now"""
     update.message.reply_text(update.message.text)
+
+def lives(bot, update):
+    update.message.reply_text(update.message.from_user.first_name+' bets '+update.message.text + ' lives.')
+    return ConversationHandler.END
+
 
 def error(bot, update, error):
     """Log Errors caused by Updates."""
@@ -187,16 +196,30 @@ def main():
     dp.add_handler(CommandHandler("rules", rules))
     dp.add_handler(CommandHandler("status", status))
     dp.add_handler(CommandHandler("participate", participate))
-    updater.dispatcher.add_handler(CallbackQueryHandler(card))
+    dp.add_handler(CallbackQueryHandler(card))
     dp.add_handler(CommandHandler("disclaimer", disclaimer))
     dp.add_handler(CommandHandler("freeasinfreedom", freeasinfreedom))
     dp.add_handler(CommandHandler("fold", fold))
-    dp.add_handler(CommandHandler("bet", bet))
+    #dp.add_handler(CommandHandler("bet", bet))
     dp.add_handler(CommandHandler("check", check))
     dp.add_handler(CommandHandler("quit", quit))
     dp.add_handler(CommandHandler("endgame", endgame))
     dp.add_handler(CommandHandler("scores", scores))
     dp.add_handler(CommandHandler("zawa", zawa))
+    #dp.add_handler(MessageHandler(Filters.text, echo))
+
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('bet', bet)],
+
+        states={
+            LIVES: [MessageHandler(Filters.text, lives)]
+        },
+
+        fallbacks=[CommandHandler('fold', fold)]
+    )
+
+    dp.add_handler(conv_handler)
+
 
     dp.add_error_handler(error)
     updater.start_polling()
