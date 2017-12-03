@@ -39,7 +39,7 @@ PRESSURE = 'THE PRESSURE... it\'s crushing!'
 BUT = 'But...'
 STILL = 'Still!'
 KUYASHII = 'KUYASHII'
-CATCH = [ZAWAZAWA, NATURAL, MEAN, KUYASHII, STILL, BUT, PRESSURE]
+CATCH = [ZAWAZAWA, NATURAL, MEAN, KUYASHII, STILL, BUT, PRESSURE, ZAWAZAWA, ZAWAZAWA]
 
 def start(bot, update):
     update.message.reply_text(GREETINGS, parse_mode = ParseMode.MARKDOWN)
@@ -111,8 +111,19 @@ def bet(bot, update):
     """Raise a bet"""
     user = update.message.from_user
     name = user.first_name
-    update.message.reply_text('``` There are already two people playing.```', parse_mode = ParseMode.MARKDOWN)
-    update.message.reply_text('``` There are already two people playing.```', parse_mode = ParseMode.MARKDOWN)
+    chat_id = update.message.chat_id
+    if(chats[chat_id].player1.user == user):
+	lives = chats[chat_id].player1.lives
+	bet = chats[chat_id].player1.bet
+    elif(chats[chat_id].player2.user == user):
+	lives = chats[chat_id].player2.lives
+	bet = chats[chat_id].player2.bet
+    else:
+	lives = 0
+	bet = 0
+	update.message.reply_text('``` You are not a player.```', parse_mode = ParseMode.MARKDOWN)
+    update.message.reply_text('``` You have: ```' + lives + '``` lives.```', parse_mode = ParseMode.MARKDOWN)
+    update.message.reply_text('``` You have bet: ```' + bet + '``` lives.```', parse_mode = ParseMode.MARKDOWN)
     reply_markup=ForceReply(force_reply=True, selective = True)
     update.message.reply_text('Input lives to bet.', reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
     return LIVES
@@ -126,11 +137,22 @@ def check(bot, update):
 
 def fold(bot, update):
     """Fold"""
+    user = update.message.from_user
+    name = user.first_name
+    chat_id = update.message.chat_id
+    bot.send_message(chat_id, '``` ' + name + ' folds.```', parse_mode = ParseMode.MARKDOWN)
     return ConversationHandler.END
 
 
 def quit(bot, update):
-    """Player quits"""
+    """A player quits"""
+    user = update.message.from_user
+    name = user.first_name
+    chat_id = update.message.chat_id
+    bot.send_message(chat_id, '``` ' + name + ' quits. Game ends.```', parse_mode = ParseMode.MARKDOWN)
+    if(chats.has_key(chat_id)):
+	del chats[chat_id]
+	
 
 def scores(bot, update):
     """Prints all the matches in a game"""
@@ -138,7 +160,7 @@ def scores(bot, update):
 def endgame(bot, update):
     """End the game, like quit, but there are not winners nor losers"""
     chat_id = update.message.chat_id
-    bot.send_message(chat_id, 'Game ends.')
+    bot.send_message(chat_id, '``` Game ends.```', parse_mode = ParseMode.MARKDOWN)
     if(chats.has_key(chat_id)):
     	del chats[chat_id]
 	
@@ -149,7 +171,7 @@ def zawa(bot, update, job_queue):
     chat_id = update.message.chat_id
     if(ZAWA):
 	bot.send_message(chat_id, '``` Zawa mode switched ON```', parse_mode = ParseMode.MARKDOWN)
-	job_queue.run_once(callback_minute, 120, context=chat_id)
+	job_queue.run_repeating(callback_minute, 120, context=chat_id)
     else:
 	bot.send_message(chat_id, '``` Zawa mode switched OFF```', parse_mode = ParseMode.MARKDOWN)
 	job_queue.stop()
