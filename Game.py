@@ -3,7 +3,7 @@ from random import shuffle
 from Player import Player
 
 class Game:
-
+	#I heard you like emojis, so I put emojis in the code so you can enjoy them while playing. ur welcome
 	clubs = ['2 of ♣️', '3 of ♣️', '4 of ♣️', '5 of ♣️', '6 of ♣️', '7 of ♣️', '8 of ♣️', '9 of ♣️', '10 of ♣️', 'Jack of ♣️', 'Queen of ♣️', 'King of ♣️', 'Ace of ♣️']
 	spades = ['2 of ♠️', '3 of ♠️', '4 of ♠️', '5 of ♠️', '6 of ♠️', '7 of ♠️', '8 of ♠️', '9 of ♠️', '10 of ♠️', 'Jack of ♠️', 'Queen of ♠️', 'King of ♠️', 'Ace of ♠️']
 	hearts = ['2 of ♥️', '3 of ♥️', '4 of ♥️', '5 of ♥️', '6 of ♥️', '7 of ♥️', '8 of ♥️', '9 of ♥️', '10 of ♥️', 'Jack of ♥️', 'Queen of ♥️', 'King of ♥️', 'Ace of ♥️']
@@ -106,3 +106,19 @@ class Game:
 	def initBets(self):
 		self.player1.bet = 0
 		self.player2.bet = 0
+
+	def displayScores(self):
+		i = 0
+		string = ''
+		while (i<len(self.victories)):
+			string = '``` Round '+(i+1)+' : '+self.player1.name+' '+self.matches[i][0]+ ' | '+self.player2.name+' '+self.matches[i][1]+ ' RESULT: '+ self.whoWon(self.vitories[i]) + string
+		return string
+
+
+	def whoWon(self, number):
+		if(number == 1):
+			return player1.name + ' won.\n'
+		elif(number == 2):
+			return player2.name + ' won.\n'
+		else:
+			return 'Players tied.\n'
