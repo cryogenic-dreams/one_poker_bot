@@ -25,12 +25,13 @@ SELECT_CARD = '``` Please select your card.```'
 SELECTION_COMPLETED = '``` Card selection has been completed.\nNow proceeding to betting phase.```'
 QUESTION = '``` Check or bet?```'
 CHECK = '``` Both players check.```'
+CALL_RAISE_FOLD = '``` Call, raise or fold?```'
 BET_COMPL = '``` Betting complete.```'
 BET2 = '```The betting phase has been completed.```'
 CARD_REV = '``` Now revealing the cards.```'
 WIN = '```The winner is %s ```'
 chats={}
-LIVES,FOLD,ECHO = range(3)
+LIVES,FOLD,C_R_F = range(3)
 ZAWAZAWA = 'ざわ... ざわ...'
 NATURAL = 'It\'s only natural.'
 MEAN = 'What does it mean to gamble? What does it...'
@@ -38,7 +39,7 @@ PRESSURE = 'THE PRESSURE... it\'s crushing!'
 BUT = 'But...'
 STILL = 'Still!'
 KUYASHII = 'KUYASHII'
-CATCH = [ZAWAZAWA, NATURAL, MEAN, KUYASHII, STILL, BUT, PRESSURE, ZAWAZAWA, ZAWAZAWA]
+CATCH = [ZAWAZAWA, NATURAL, MEAN, KUYASHII, STILL, BUT, PRESSURE, ZAWAZAWA, ZAWAZAWA]#extra zawas, just because
 
 def start(bot, update):
     update.message.reply_text(GREETINGS, parse_mode = ParseMode.MARKDOWN)
@@ -123,7 +124,7 @@ def bet(bot, update):
 	update.message.reply_text('``` You are not a player.```', parse_mode = ParseMode.MARKDOWN)
     update.message.reply_text('``` You have: ```' + lives + '``` lives.```', parse_mode = ParseMode.MARKDOWN)
     update.message.reply_text('``` You have bet: ```' + bet + '``` lives.```', parse_mode = ParseMode.MARKDOWN)
-    reply_markup=ForceReply(force_reply=True, selective = True)
+    reply_markup=ForceReply(force_reply = True, selective = True)
     update.message.reply_text('Input lives to bet.', reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
     return LIVES
 	
@@ -155,6 +156,8 @@ def quit(bot, update):
 
 def scores(bot, update):
     """Prints all the matches in a game"""
+    chat_id = update.message.chat_id
+    bot.send_message(chat_id, chats[chat_id].displayScores(), parse_mode = ParseMode.MARKDOWN)
 
 def endgame(bot, update):
     """End the game, like quit, but there are not winners nor losers"""
@@ -176,9 +179,14 @@ def zawa(bot, update, job_queue, chat_data):
     	job.schedule_removal()
     	del chat_data['job']
 
-def echo(bot, update):
+def call(bot, update):
     """Lets keep the tutorial's examples from now"""
     update.message.reply_text(update.message.text)
+
+def raise(bot, update):
+    """Lets keep the tutorial's examples from now"""
+    update.message.reply_text(update.message.text)
+
 
 def lives(bot, update):
     chat_id = update.message.chat_id
@@ -188,15 +196,15 @@ def lives(bot, update):
     	update.message.reply_text('``` ' + update.message.from_user.first_name+' bets '+update.message.text + ' lives.```', parse_mode = ParseMode.MARKDOWN)
 	
 	custom_keyboard = [['CALL'], ['RAISE'], ['FOLD']]
-	reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = True) #turn selective ON so just this player receives the message
-	update.message.reply_text(CARDS, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
+	reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = False) #turn selective ON so just this player receives the message
+	update.message.reply_text(CALL_RAISE_FOLD, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
     elif(chats[chat_id].player2.user == user):
 	chats[chat_id].player2.setBet(int(update.message.text))
 	update.message.reply_text('``` ' + update.message.from_user.first_name+' bets '+update.message.text + ' lives.```', parse_mode = ParseMode.MARKDOWN)
 	
 	custom_keyboard = [['CALL'], ['RAISE'], ['FOLD']]
-	reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = True) #turn selective ON so just this player receives the message
-	update.message.reply_text(CARDS, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
+	reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = False) #turn selective ON so just this player receives the message
+	update.message.reply_text(CALL_RAISE_FOLD, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
     else:
 	update.message.reply_text('``` You are not a player.```', parse_mode = ParseMode.MARKDOWN)
     return C_R_F
@@ -249,7 +257,7 @@ def main():
     dp = updater.dispatcher
     j = updater.job_queue
 
-    # on different commands - answer in Telegram
+    # big ass list of commands
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
     dp.add_handler(CommandHandler("rules", rules))
@@ -258,14 +266,11 @@ def main():
     dp.add_handler(CallbackQueryHandler(card))
     dp.add_handler(CommandHandler("disclaimer", disclaimer))
     dp.add_handler(CommandHandler("freeasinfreedom", freeasinfreedom))
-    dp.add_handler(CommandHandler("fold", fold))
-    #dp.add_handler(CommandHandler("bet", bet))
     dp.add_handler(CommandHandler("check", check))
     dp.add_handler(CommandHandler("quit", quit))
     dp.add_handler(CommandHandler("endgame", endgame))
     dp.add_handler(CommandHandler("scores", scores))
     dp.add_handler(CommandHandler("zawa", zawa, pass_job_queue=True, pass_chat_data=True))
-    #dp.add_handler(MessageHandler(Filters.text, echo))
 
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('bet', bet)],
