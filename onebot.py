@@ -71,7 +71,7 @@ def participate(bot, update):
     if (chats.get(chat_id) is None):
         update.message.reply_text('``` Entry completed.\n' + name + ': 10 Lives.```', parse_mode = ParseMode.MARKDOWN)
 	#create a new player
-	p1 = Player(name, user, [])
+	p1 = Player(name, user, [], False)
 	#create a new game
 	game = Game(chat_id, p1, None, [], [], [])
     	chats[chat_id] = game
@@ -81,7 +81,7 @@ def participate(bot, update):
 	update.message.reply_text(CARDS, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
     else:
 	if(chats[chat_id].player2 is None):
-		p2 = Player(name, user, [])
+		p2 = Player(name, user, [], False)
 		chats[chat_id].player2 = p2
 		update.message.reply_text('``` Entry completed.\n' + name + ': 10 Lives.```', parse_mode = ParseMode.MARKDOWN)
 		#once the players are set, lets give em cards
@@ -186,12 +186,20 @@ def lives(bot, update):
     if(chats[chat_id].player1.user == user):
         chats[chat_id].player1.setBet(int(update.message.text))
     	update.message.reply_text('``` ' + update.message.from_user.first_name+' bets '+update.message.text + ' lives.```', parse_mode = ParseMode.MARKDOWN)
+	
+	custom_keyboard = [['CALL'], ['RAISE'], ['FOLD']]
+	reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = True) #turn selective ON so just this player receives the message
+	update.message.reply_text(CARDS, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
     elif(chats[chat_id].player2.user == user):
 	chats[chat_id].player2.setBet(int(update.message.text))
 	update.message.reply_text('``` ' + update.message.from_user.first_name+' bets '+update.message.text + ' lives.```', parse_mode = ParseMode.MARKDOWN)
+	
+	custom_keyboard = [['CALL'], ['RAISE'], ['FOLD']]
+	reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = True) #turn selective ON so just this player receives the message
+	update.message.reply_text(CARDS, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
     else:
 	update.message.reply_text('``` You are not a player.```', parse_mode = ParseMode.MARKDOWN)
-    return ConversationHandler.END
+    return C_R_F
 
 
 def error(bot, update, error):
@@ -263,10 +271,11 @@ def main():
         entry_points=[CommandHandler('bet', bet)],
 
         states={
-            LIVES: [MessageHandler(Filters.text, lives)]
+            LIVES: [MessageHandler(Filters.text, lives)],
+	    C_R_F: [CommandHandler('call', call), CommandHandler('raise', raise), CommandHandler('fold', fold),]
         },
 
-        fallbacks=[CommandHandler('fold', fold)]
+        fallbacks=[CommandHandler('quit', quit)]
     )
 
     dp.add_handler(conv_handler)
