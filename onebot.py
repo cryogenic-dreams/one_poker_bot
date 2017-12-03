@@ -31,7 +31,6 @@ CARD_REV = '``` Now revealing the cards.```'
 WIN = '```The winner is %s ```'
 chats={}
 LIVES,FOLD,ECHO = range(3)
-ZAWA = False
 ZAWAZAWA = 'ざわ... ざわ...'
 NATURAL = 'It\'s only natural.'
 MEAN = 'What does it mean to gamble? What does it...'
@@ -166,10 +165,8 @@ def endgame(bot, update):
 	
 def zawa(bot, update, job_queue, chat_data):
     """Every 1 to 10 minutes (randomly) bot posts a zawa (ざわ) message. It's a switcher, typing it for the 1st enables and the 2nd time disables it"""
-    global ZAWA
-    ZAWA = not(ZAWA)
     chat_id = update.message.chat_id
-    if(ZAWA):
+    if('job' not in chat_data):
 	bot.send_message(chat_id, '``` Zawa mode switched ON```', parse_mode = ParseMode.MARKDOWN)
 	job = job_queue.run_repeating(callback_minute, 120, context=chat_id)
  	chat_data['job'] = job
