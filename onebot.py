@@ -2,7 +2,7 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, ConversationHandler
 from telegram import ChatMember, KeyboardButton, ReplyKeyboardMarkup, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove, ForceReply
 import logging
-from random import shuffle
+from random import shuffle, randint
 from Player import Player
 from Game import Game
 
@@ -31,6 +31,15 @@ CARD_REV = '``` Now revealing the cards.```'
 WIN = '```The winner is %s ```'
 chats={}
 LIVES,FOLD,ECHO = range(3)
+ZAWA = False
+ZAWAZAWA = 'ざわ... ざわ...'
+NATURAL = 'It\'s only natural.'
+MEAN = 'What does it mean to gamble? What does it...'
+PRESSURE = 'THE PRESSURE... it\'s crushing!'
+BUT = 'But...'
+STILL = 'Still!'
+KUYASHII = 'KUYASHII'
+CATCH = [ZAWAZAWA, NATURAL, MEAN, KUYASHII, STILL, BUT, PRESSURE]
 
 def start(bot, update):
     update.message.reply_text(GREETINGS, parse_mode = ParseMode.MARKDOWN)
@@ -102,15 +111,17 @@ def bet(bot, update):
     """Raise a bet"""
     user = update.message.from_user
     name = user.first_name
+    update.message.reply_text('``` There are already two people playing.```', parse_mode = ParseMode.MARKDOWN)
+    update.message.reply_text('``` There are already two people playing.```', parse_mode = ParseMode.MARKDOWN)
     reply_markup=ForceReply(force_reply=True, selective = True)
-    update.message.reply_text('Input lives to bet.', reply_markup=reply_markup)
+    update.message.reply_text('Input lives to bet.', reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
     return LIVES
 	
 def check(bot, update):
     """Raise a bet"""
     user = update.message.from_user
     name = user.first_name
-    update.message.reply_text(name+' checks.')
+    update.message.reply_text(name+' checks.', parse_mode = ParseMode.MARKDOWN)
 	
 
 def fold(bot, update):
@@ -131,15 +142,33 @@ def endgame(bot, update):
     if(chats.has_key(chat_id)):
     	del chats[chat_id]
 	
-def zawa(bot, update):
+def zawa(bot, update, job_queue):
     """Every 1 to 10 minutes (randomly) bot posts a zawa (ざわ) message. It's a switcher, typing it for the 1st enables and the 2nd time disables it"""
-	
+    global ZAWA
+    ZAWA = not(ZAWA)
+    chat_id = update.message.chat_id
+    if(ZAWA):
+	bot.send_message(chat_id, '``` Zawa mode switched ON```', parse_mode = ParseMode.MARKDOWN)
+	job_queue.run_once(callback_minute, 120, context=chat_id)
+    else:
+	bot.send_message(chat_id, '``` Zawa mode switched OFF```', parse_mode = ParseMode.MARKDOWN)
+	job_queue.stop()
+
 def echo(bot, update):
     """Lets keep the tutorial's examples from now"""
     update.message.reply_text(update.message.text)
 
 def lives(bot, update):
-    update.message.reply_text(update.message.from_user.first_name+' bets '+update.message.text + ' lives.')
+    chat_id = update.message.chat_id
+    user = update.message.from_user
+    if(chats[chat_id].player1.user == user):
+        chats[chat_id].player1.setBet(int(update.message.text))
+    	update.message.reply_text('``` ' + update.message.from_user.first_name+' bets '+update.message.text + ' lives.```', parse_mode = ParseMode.MARKDOWN)
+    elif(chats[chat_id].player2.user == user):
+	chats[chat_id].player2.setBet(int(update.message.text))
+	update.message.reply_text('``` ' + update.message.from_user.first_name+' bets '+update.message.text + ' lives.```', parse_mode = ParseMode.MARKDOWN)
+    else:
+	update.message.reply_text('``` You are not a player.```', parse_mode = ParseMode.MARKDOWN)
     return ConversationHandler.END
 
 
@@ -173,10 +202,7 @@ def card(bot, update):
 		bot.send_message(chat_id, CARDS, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
 		
 
-def build_menu(buttons,
-               n_cols,
-               header_buttons=None,
-               footer_buttons=None):
+def build_menu(buttons, n_cols, header_buttons=None, footer_buttons=None):
     menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
     if header_buttons:
         menu.insert(0, header_buttons)
@@ -184,11 +210,14 @@ def build_menu(buttons,
         menu.append(footer_buttons)
     return menu
 
+def callback_minute(bot, job):
+    bot.send_message(chat_id = job.context, text=CATCH[randint(0,len(CATCH))])
 
 def main():
 
     updater = Updater(TOKEN)
     dp = updater.dispatcher
+    j = updater.job_queue
 
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
@@ -205,7 +234,7 @@ def main():
     dp.add_handler(CommandHandler("quit", quit))
     dp.add_handler(CommandHandler("endgame", endgame))
     dp.add_handler(CommandHandler("scores", scores))
-    dp.add_handler(CommandHandler("zawa", zawa))
+    dp.add_handler(CommandHandler("zawa", zawa, pass_job_queue=True))
     #dp.add_handler(MessageHandler(Filters.text, echo))
 
     conv_handler = ConversationHandler(
