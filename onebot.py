@@ -164,17 +164,20 @@ def endgame(bot, update):
     if(chats.has_key(chat_id)):
     	del chats[chat_id]
 	
-def zawa(bot, update, job_queue):
+def zawa(bot, update, job_queue, chat_data):
     """Every 1 to 10 minutes (randomly) bot posts a zawa (ざわ) message. It's a switcher, typing it for the 1st enables and the 2nd time disables it"""
     global ZAWA
     ZAWA = not(ZAWA)
     chat_id = update.message.chat_id
     if(ZAWA):
 	bot.send_message(chat_id, '``` Zawa mode switched ON```', parse_mode = ParseMode.MARKDOWN)
-	job_queue.run_repeating(callback_minute, 120, context=chat_id)
+	job = job_queue.run_repeating(callback_minute, 120, context=chat_id)
+ 	chat_data['job'] = job
     else:
 	bot.send_message(chat_id, '``` Zawa mode switched OFF```', parse_mode = ParseMode.MARKDOWN)
-	job_queue.stop()
+	job = chat_data['job']
+    	job.schedule_removal()
+    	del chat_data['job']
 
 def echo(bot, update):
     """Lets keep the tutorial's examples from now"""
@@ -233,7 +236,7 @@ def build_menu(buttons, n_cols, header_buttons=None, footer_buttons=None):
     return menu
 
 def callback_minute(bot, job):
-    bot.send_message(chat_id = job.context, text=CATCH[randint(0,len(CATCH))])
+    bot.send_message(chat_id = job.context, text=CATCH[randint(0,len(CATCH)-1)])
 
 def main():
 
@@ -256,7 +259,7 @@ def main():
     dp.add_handler(CommandHandler("quit", quit))
     dp.add_handler(CommandHandler("endgame", endgame))
     dp.add_handler(CommandHandler("scores", scores))
-    dp.add_handler(CommandHandler("zawa", zawa, pass_job_queue=True))
+    dp.add_handler(CommandHandler("zawa", zawa, pass_job_queue=True, pass_chat_data=True))
     #dp.add_handler(MessageHandler(Filters.text, echo))
 
     conv_handler = ConversationHandler(
