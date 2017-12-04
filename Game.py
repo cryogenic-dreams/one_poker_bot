@@ -36,15 +36,12 @@ class Game:
 			#end game here
 			return false
 		
-	def winningCard(self, choice1, choice2):
+	def winningCard(self, card1, card2):
 		"""
 		Returns 1 if first card wins or 2 if second card wins
 		Returns 0 if there's a tie
-		"""
-		card1 = self.player1.hand[choice1]
-		card2 = self.player2.hand[choice2]
-	
-		self.disposeCards(choice1, choice2)
+		"""	
+		self.matches.append([card1, card2])
 	
 		if('♣️' in card1):
 			i1 = clubs.index(card1)
@@ -77,17 +74,9 @@ class Game:
 			else:
 				return 1
 			
-			
-	def disposeCards(self, choice1, choice2): #save cards of the match and previous ones and then remove them from the players hand
-		card1 = self.player1.hand[choice1]
-		card2 = self.player2.hand[choice2]
-		
-		self.matches.append([card1, card2])
-		self.player1.hand.remove(choice1)
-		self.player2.hand.remove(choice2)
 	
-	def manageResult(self, choice1, choice2): #save results and redistribute lives
-		result = self.winningCard(choice1, choice2)
+	def manageResult(self, card1, card2): #save results and redistribute lives
+		result = self.winningCard(card1, card2)
 		victories.append(result)
 		if(result == 1):
 			#player 1 wins
@@ -101,7 +90,7 @@ class Game:
 			self.player2.lives = self.player2.lives + self.player2.bet
 			
 		self.initBets()
-		return result
+		return self.whoWon(result)
 			
 	def initBets(self):
 		self.player1.bet = 0
@@ -116,6 +105,9 @@ class Game:
 
 
 	def whoWon(self, number):
+		"""
+		Players are just numbers, after all...
+		"""
 		if(number == 1):
 			return player1.name + ' won.\n'
 		elif(number == 2):
