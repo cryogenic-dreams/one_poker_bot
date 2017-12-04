@@ -2,7 +2,7 @@ class Player:
 	LIVES = 10
 	BET = 0
 
-	def __init__ (self, name, user, card):
+	def __init__ (self, name, user, card, check):
 		self.hand = []
 		self.user = user
 		#self.id = id
@@ -10,9 +10,13 @@ class Player:
 		self.lives = Player.LIVES
 		self.bet = Player.BET
 		self.card_played = card
+		self.check = check
 	
 	def displayStatus(self):
-		return '``` '+self.name + ': ' + self.isUPorDOWN(self.hand[0]) + ' | ' + self.isUPorDOWN(self.hand[1])+ '```'
+		if (len(self.hand) > 1):
+			return '``` '+self.name + ': ' + self.isUPorDOWN(self.hand[0]) + ' | ' + self.isUPorDOWN(self.hand[1])+ '```'
+		else:
+			return '``` '+self.name + ': ' + self.isUPorDOWN(self.hand[0]) + '```'
 	
 	def isUPorDOWN(self, card): #ideally, this will be in a different class named card, but... 2lazy
 		if ('2' in card or '3' in card or '4' in card or '5' in card or '6' in card or '7' in card):
