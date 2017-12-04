@@ -139,6 +139,7 @@ def bet(bot, update):
 def check(bot, update):
     user = update.message.from_user
     name = user.first_name
+    chat_id = update.message.chat_id
     update.message.reply_text(name+' checks.', parse_mode = ParseMode.MARKDOWN)
     if(chats[chat_id].player1.user == user):
 	chats[chat_id].player1.check = True
@@ -146,7 +147,7 @@ def check(bot, update):
 	chats[chat_id].player2.check = True
     if(chats[chat_id].player1.check == True) and (chats[chat_id].player2.check == True):
 	result = chats[chat_id].manageResult(chats[chat_id].player1.card_played, chats[chat_id].player2.card_played)
-	bot.send_message(chat_id, '``` ' + name + ' quits. Game ends.```', parse_mode = ParseMode.MARKDOWN)
+	bot.send_message(chat_id, result, parse_mode = ParseMode.MARKDOWN)
 
 
 def fold(bot, update):
@@ -236,25 +237,30 @@ def card(bot, update):
     user = query.from_user
     chat_id = query.message.chat_id
     selected_card = query.data
-    if(chats[chat_id].player1.card_played == []) or (chats[chat_id].player1.card_played == []):
+    if(chats[chat_id].player1.card_played == []) and (chats[chat_id].player2.card_played == []):
     	bot.send_message(text="``` {} has selected a card.```".format(user.first_name), chat_id=query.message.chat_id, message_id=query.message.message_id, parse_mode = ParseMode.MARKDOWN)
 	if (chats[chat_id].player1.user == user):
 		chats[chat_id].player1.card_played = chats[chat_id].player1.hand[int(selected_card)]
 		chats[chat_id].player1.hand.remove(chats[chat_id].player1.hand[int(selected_card)])
-		print chats[chat_id].player1.card_played
 	elif (chats[chat_id].player2.user == user):
 		chats[chat_id].player2.card_played = chats[chat_id].player2.hand[int(selected_card)]
-		chats[chat_id].player2.hand.remove(chats[chat_id].player1.hand[int(selected_card)])
+		chats[chat_id].player2.hand.remove(chats[chat_id].player2.hand[int(selected_card)])
     else:	
 	if (chats[chat_id].player1.user == user and chats[chat_id].player1.card_played != []):
 		bot.send_message(text="``` {} has already selected a card.```".format(user.first_name), chat_id=query.message.chat_id, message_id=query.message.message_id, parse_mode = ParseMode.MARKDOWN)
 	elif (chats[chat_id].player2.user == user and chats[chat_id].player2.card_played != []):
 		bot.send_message(text="``` {} has already selected a card.```".format(user.first_name), chat_id=query.message.chat_id, message_id=query.message.message_id, parse_mode = ParseMode.MARKDOWN)
 	else:
+		if (chats[chat_id].player1.user == user):
+			chats[chat_id].player1.card_played = chats[chat_id].player1.hand[int(selected_card)]
+			chats[chat_id].player1.hand.remove(chats[chat_id].player1.hand[int(selected_card)])
+		elif (chats[chat_id].player2.user == user):
+			chats[chat_id].player2.card_played = chats[chat_id].player2.hand[int(selected_card)]
+			chats[chat_id].player2.hand.remove(chats[chat_id].player2.hand[int(selected_card)])
  		bot.edit_message_text(text="``` {} has selected a card.```".format(user.first_name), chat_id=query.message.chat_id, message_id=query.message.message_id, parse_mode = ParseMode.MARKDOWN)
 		custom_keyboard = [['CHECK'], ['BET']]
 		reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = False)
-		bot.send_message(chat_id, CARDS, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
+		bot.send_message(chat_id, QUESTION, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
 		
 
 def build_menu(buttons, n_cols, header_buttons=None, footer_buttons=None):
@@ -289,14 +295,13 @@ def main():
     dp.add_handler(CommandHandler("scores", scores))
     dp.add_handler(CommandHandler("zawa", zawa, pass_job_queue=True, pass_chat_data=True))
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('bet', bet)],
+        entry_points=[RegexHandler('(BET)', bet)],
 
         states={
             LIVES: [MessageHandler(Filters.text, lives)],
-  	    C_R_F: [RegexHandler('^(CALL)$', call), 
-		RegexHandler('^(RAISE)$', raiseB),
-		RegexHandler('^(FOLD)$', fold),]
-	  
+  	    C_R_F: [RegexHandler('(CALL)', call), 
+		RegexHandler('(RAISE)', raiseB),
+		RegexHandler('(FOLD)', fold),]
         },
 
         fallbacks=[CommandHandler('quit', quit)]
