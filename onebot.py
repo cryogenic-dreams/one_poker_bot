@@ -60,8 +60,11 @@ def freeasinfreedom(bot, update):
 def status(bot, update):
     """Send the UPs and DOWNs of the players when the command /status is issued."""
     chat_id = update.message.chat_id
-    update.message.reply_text(chats[chat_id].player1.displayStatus(), parse_mode = ParseMode.MARKDOWN)
-    update.message.reply_text(chats[chat_id].player2.displayStatus(), parse_mode = ParseMode.MARKDOWN)
+    if(chats.get(chat_id) is None):
+	bot.send_message(chat_id, '``` Game has not started yet.```', parse_mode = ParseMode.MARKDOWN)
+    else:
+	update.message.reply_text(chats[chat_id].player1.displayStatus(), parse_mode = ParseMode.MARKDOWN)
+	update.message.reply_text(chats[chat_id].player2.displayStatus(), parse_mode = ParseMode.MARKDOWN)
 
 def participate(bot, update):
     """take id and name of the user"""
@@ -142,8 +145,9 @@ def check(bot, update):
     elif(chats[chat_id].player2.user == user):
 	chats[chat_id].player2.check = True
     if(chats[chat_id].player1.check == True) and (chats[chat_id].player2.check == True):
-	chats[chat_id].manageResult(choice1, choice2)
-	
+	result = chats[chat_id].manageResult(chats[chat_id].player1.card_played, chats[chat_id].player2.card_played)
+	bot.send_message(chat_id, '``` ' + name + ' quits. Game ends.```', parse_mode = ParseMode.MARKDOWN)
+
 
 def fold(bot, update):
     """Fold"""
@@ -151,7 +155,7 @@ def fold(bot, update):
     name = user.first_name
     chat_id = update.message.chat_id
     bot.send_message(chat_id, '``` ' + name + ' folds.```', parse_mode = ParseMode.MARKDOWN)
-    return ConversationHandler.END
+    check(bot, update)
 
 
 def quit(bot, update):
