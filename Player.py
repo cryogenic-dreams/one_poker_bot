@@ -16,7 +16,7 @@ class Player:
 		if (len(self.hand) > 1):
 			return '``` '+self.name + ': ' + self.isUPorDOWN(self.hand[0]) + ' | ' + self.isUPorDOWN(self.hand[1])+ '```'
 		else:
-			return '``` '+self.name + ': ' + self.isUPorDOWN(self.hand[0]) + '```'
+			return ' '
 	
 	def isUPorDOWN(self, card): #ideally, this will be in a different class named card, but... 2lazy
 		if ('2' in card or '3' in card or '4' in card or '5' in card or '6' in card or '7' in card):
