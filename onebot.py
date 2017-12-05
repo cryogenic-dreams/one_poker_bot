@@ -268,13 +268,13 @@ def main():
     dp.add_handler(CommandHandler("scores", scores))
     dp.add_handler(CommandHandler("zawa", zawa, pass_job_queue=True, pass_chat_data=True))
     conv_handler = ConversationHandler(
-        entry_points=[RegexHandler('(BET)', bet)],
+        entry_points=[RegexHandler('(^BET)$', bet)],
 
         states={
             LIVES: [MessageHandler(Filters.text, lives)],
-  	    C_R_F: [RegexHandler('(CALL)', call), 
-		RegexHandler('(RAISE)', raiseB),
-		RegexHandler('(FOLD)', fold),]
+  	    C_R_F: [RegexHandler('(^CALL)$', call), 
+		RegexHandler('(^RAISE)$', raiseB),
+		RegexHandler('(^FOLD)$', fold),]
         },
 
         fallbacks=[CommandHandler('quit', quit)]
