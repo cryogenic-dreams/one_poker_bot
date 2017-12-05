@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 class Strings:
 
   TOKEN = "___YOURBOTSTOKEN___" #write here your bot's token
