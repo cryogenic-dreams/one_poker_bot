@@ -13,6 +13,10 @@ class Strings:
   ALREADY = '``` There are already two people playing.```'
   CARDS = '``` These are your cards.```'
   SELECT_CARD = '``` Please select your card.```'
+  MENU1 = "Select 1st card"
+  MENU2 = "Select 2nd card"
+  CARD_SELECTED = "``` {} has selected a card.```"
+  CARD_SELECTED2 = "``` {} has already selected a card.```"
   SELECTION_COMPLETED = '``` Card selection has been completed.\nNow proceeding to betting phase.```'
   QUESTION = '``` Check or bet?```'
   NOT_PLAYER = '``` You are not a player.```'
@@ -20,11 +24,18 @@ class Strings:
   P_BET = '``` You have bet: %i lives.```'
   INPUT_BET = '``` Input lives to bet.```'
   CHECK = '``` Both players check.```'
+  P_FOLDS = '``` %s folds.```'
+  P_CHECKS = '``` %s checks.```'
+  LIVES_BET = '``` %s bets %i lives.```'
   CALL_RAISE_FOLD = '``` Call, raise or fold?```'
   BET_COMPL = '``` Betting complete.```'
   BET2 = '```The betting phase has been completed.```'
   CARD_REV = '``` Now revealing the cards.```'
   WIN = '```The winner is %s ```'
+  P_QUITS = '``` %s quits. Game ends.```'
+  END = ' ```Game ends.```'
+  
+  #for fun
   ZAWAZAWA = 'ざわ... ざわ...'
   NATURAL = 'It\'s only natural.'
   MEAN = 'What does it mean to gamble? What does it...'
