@@ -9,3 +9,6 @@ one_poker_bot is a telegram bot that emulates the game that Kazuya and Kaiji pla
 
 # DEPENDENCIES
 This bot uses [Python Telegram Bot](https://github.com/python-telegram-bot/python-telegram-bot)
+
+# HOW TO PLAY
+[](https://github.com/cryogenic-dreams/one_poker_bot/blob/master/state_diagram.png?raw=true)
