@@ -163,7 +163,7 @@ def zawa(bot, update, job_queue, chat_data):
     chat_id = update.message.chat_id
     if('job' not in chat_data):
 	bot.send_message(chat_id, Strings.ZAWA_ON, parse_mode = ParseMode.MARKDOWN)
-	job = job_queue.run_repeating(callback_minute, 120, context=chat_id)
+	job = job_queue.run_repeating(callback_minute, randint(60,600), context=chat_id)
  	chat_data['job'] = job
     else:
 	bot.send_message(chat_id, Strings.ZAWA_OFF, parse_mode = ParseMode.MARKDOWN)
