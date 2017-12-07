@@ -104,10 +104,10 @@ def bet(bot, update):
 	lives = 0
 	bet = 0
 	update.message.reply_text(Strings.NOT_PLAYER, parse_mode = ParseMode.MARKDOWN)
-    update.message.reply_text(P_LIVES %(lives), parse_mode = ParseMode.MARKDOWN)
-    update.message.reply_text(P_BET %(bet), parse_mode = ParseMode.MARKDOWN)
+    update.message.reply_text(Strings.P_LIVES %(lives), parse_mode = ParseMode.MARKDOWN)
+    update.message.reply_text(Strings.P_BET %(bet), parse_mode = ParseMode.MARKDOWN)
     reply_markup = ForceReply(force_reply = True, selective = True)
-    update.message.reply_text(INPUT_BET, reply_markup = reply_markup, parse_mode = ParseMode.MARKDOWN)
+    update.message.reply_text(Strings.INPUT_BET, reply_markup = reply_markup, parse_mode = ParseMode.MARKDOWN)
     return LIVES
 	
 def check(bot, update):
@@ -182,6 +182,7 @@ def lives(bot, update):
     chat_id = update.message.chat_id
     user = update.message.from_user
     lives_bet = int(update.message.text)
+    name = user.first_name
     if(chats[chat_id].player1.user == user):
         chats[chat_id].player1.setBet(lives_bet)
     	update.message.reply_text(Strings.LIVES_BET %(name, lives_bet), parse_mode = ParseMode.MARKDOWN)
@@ -249,7 +250,7 @@ def callback_minute(bot, job):
 
 def main():
 
-    updater = Updater(TOKEN)
+    updater = Updater(Strings.TOKEN)
     dp = updater.dispatcher
     j = updater.job_queue
 
