@@ -14,7 +14,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 chats={}
-LIVES,FOLD,C_R_F = range(3)
+PARTICIPATE,BET_CHECK,CARD,LIVES,C_R_F = range(4)
 
 def start(bot, update):
     update.message.reply_text(Strings.GREETINGS, parse_mode = ParseMode.MARKDOWN)
@@ -50,7 +50,7 @@ def participate(bot, update):
     if (chats.get(chat_id) is None):
         update.message.reply_text(Strings.ENTRY %name, parse_mode = ParseMode.MARKDOWN)
 	#create a new player
-	p1 = Player(name, user, [], False)
+	p1 = Player(name, user, [], False, update.message.message_id)
 	#create a new game
 	game = Game(chat_id, p1, None, [], [], [])
     	chats[chat_id] = game
@@ -58,42 +58,47 @@ def participate(bot, update):
 	custom_keyboard = [[chats[chat_id].player1.hand[0].decode('utf-8')], [chats[chat_id].player1.hand[1].decode('utf-8')]]
 	reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = True)
 	update.message.reply_text(Strings.CARDS, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
-
+	return PARTICIPATE
     else:
 	if(chats[chat_id].player2 is None):
-		p2 = Player(name, user, [], False)
+		p2 = Player(name, user, [], False, update.message.message_id)
 		chats[chat_id].player2 = p2
 		update.message.reply_text(Strings.ENTRY %name, parse_mode = ParseMode.MARKDOWN)
 		#once the players are set, lets give em cards
 		bot.send_message(update.message.chat_id, Strings.GAME_STARTS, parse_mode = ParseMode.MARKDOWN)
-		chats[chat_id].giveCards(2) #give 2 cards for the 1st time
-
+		chats[chat_id].giveCards(1) #give 2 cards for the 1st time
+		chats[chat_id].giveCards(1) 
 		#display their current UPs and DOWNs
-		bot.send_message(chat_id, chats[chat_id].player1.displayStatus(), parse_mode = ParseMode.MARKDOWN)
-    		bot.send_message(chat_id, chats[chat_id].player2.displayStatus(), parse_mode = ParseMode.MARKDOWN)
-
-		#here the player can see his hand
-		custom_keyboard = [[chats[chat_id].player2.hand[0].decode('utf-8')], [chats[chat_id].player2.hand[1].decode('utf-8')]]
-		reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = True) #turn selective ON so just this player receives the message
-		update.message.reply_text(Strings.CARDS, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
-
-		#here we create the actual selection menu of the cards so the choice remains secret
-		button_list = [
-    			InlineKeyboardButton(Strings.MENU1, callback_data=0),
-    			InlineKeyboardButton(Strings.MENU2, callback_data=1),
-		]
-		reply_markup = InlineKeyboardMarkup(build_menu(button_list, n_cols=1))
-		bot.send_message(chat_id, Strings.SELECT_CARD, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
+		showCards(chat_id)
 	else:
 		update.message.reply_text(Strings.ALREADY, parse_mode = ParseMode.MARKDOWN)
     		
-    print chats
-	
+def showCards(bot, chat_id):
+    bot.send_message(chat_id, chats[chat_id].player1.displayStatus(), parse_mode = ParseMode.MARKDOWN)
+    bot.send_message(chat_id, chats[chat_id].player2.displayStatus(), parse_mode = ParseMode.MARKDOWN)
+
+    #here the player can see his hand
+    custom_keyboard = [[chats[chat_id].player1.hand[0].decode('utf-8')], [chats[chat_id].player1.hand[1].decode('utf-8')]]
+    reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = True) #turn selective ON so just this player receives the message
+    bot.send_message(chat_id, Strings.CARDS, reply_markup=reply_markup, reply_to_message_id = chats[chat_id].player1.reply_id, parse_mode = ParseMode.MARKDOWN)
+
+    custom_keyboard = [[chats[chat_id].player2.hand[0].decode('utf-8')], [chats[chat_id].player2.hand[1].decode('utf-8')]]
+    reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = True) #turn selective ON so just this player receives the message
+    bot.send_message(chat_id, Strings.CARDS, reply_markup=reply_markup, reply_to_message_id = chats[chat_id].player2.reply_id, parse_mode = ParseMode.MARKDOWN)
+
+    #here we create the actual selection menu of the cards so the choice remains secret
+    button_list = [
+    	InlineKeyboardButton(Strings.MENU1, callback_data=0),
+    	InlineKeyboardButton(Strings.MENU2, callback_data=1),
+    ]
+    reply_markup = InlineKeyboardMarkup(build_menu(button_list, n_cols=1))
+    bot.send_message(chat_id, Strings.SELECT_CARD, reply_markup=reply_markup, parse_mode = ParseMode.MARKDOWN)
+    return CARD
+
 def bet(bot, update):
     user = update.message.from_user
     name = user.first_name
     chat_id = update.message.chat_id
-
     if(chats[chat_id].player1.user == user):
 	lives = chats[chat_id].player1.lives
 	bet = chats[chat_id].player1.bet
@@ -104,6 +109,7 @@ def bet(bot, update):
 	lives = 0
 	bet = 0
 	update.message.reply_text(Strings.NOT_PLAYER, parse_mode = ParseMode.MARKDOWN)
+
     update.message.reply_text(Strings.P_LIVES %(lives), parse_mode = ParseMode.MARKDOWN)
     update.message.reply_text(Strings.P_BET %(bet), parse_mode = ParseMode.MARKDOWN)
     reply_markup = ForceReply(force_reply = True, selective = True)
@@ -125,7 +131,16 @@ def check(bot, update):
 	bot.send_message(chat_id, Strings.CHECK, parse_mode = ParseMode.MARKDOWN)
 	result = chats[chat_id].manageResult(chats[chat_id].player1.card_played, chats[chat_id].player2.card_played)
 	bot.send_message(chat_id, result, parse_mode = ParseMode.MARKDOWN)
-
+	if (chats[chat_id].player1.lives == 0):
+		bot.send_message(chat_id, Strings.END, parse_mode = ParseMode.MARKDOWN)
+		bot.send_message(chat_id, Strings.WIN %chats[chat_id].player2.name, parse_mode = ParseMode.MARKDOWN)
+		return ConversationHandler.END
+	elif (chats[chat_id].player2.lives == 0):
+		bot.send_message(chat_id, Strings.END, parse_mode = ParseMode.MARKDOWN)	
+		bot.send_message(chat_id, Strings.WIN %chats[chat_id].player1.name, parse_mode = ParseMode.MARKDOWN)			
+    		return ConversationHandler.END	
+	else:	
+		showCards(bot, chat_id)
 
 def fold(bot, update):
     """Fold"""
@@ -144,7 +159,7 @@ def quit(bot, update):
     bot.send_message(chat_id, Strings.P_QUITS %name, parse_mode = ParseMode.MARKDOWN)
     if(chats.has_key(chat_id)):
 	del chats[chat_id]
-	
+	return ConversationHandler.END
 
 def scores(bot, update):
     """Prints all the matches in a game"""
@@ -157,9 +172,12 @@ def endgame(bot, update):
     bot.send_message(chat_id, Strings.END, parse_mode = ParseMode.MARKDOWN)
     if(chats.has_key(chat_id)):
     	del chats[chat_id]
+	return ConversationHandler.END
 	
 def zawa(bot, update, job_queue, chat_data):
-    """Every 1 to 10 minutes (randomly) bot posts a zawa (ざわ) message. It's a switcher, typing it for the 1st enables and the 2nd time disables it"""
+    """
+    Every 1 to 10 minutes (randomly) bot posts a zawa (ざわ) message. It's a switcher, typing it for the 1st enables and the 2nd time disables it
+    """
     chat_id = update.message.chat_id
     if('job' not in chat_data):
 	bot.send_message(chat_id, Strings.ZAWA_ON, parse_mode = ParseMode.MARKDOWN)
@@ -190,6 +208,7 @@ def lives(bot, update):
 	custom_keyboard = [['CALL'], ['RAISE'], ['FOLD']]
 	reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = False) #turn selective ON so just this player receives the message
 	update.message.reply_text(Strings.CALL_RAISE_FOLD, reply_markup = reply_markup, parse_mode = ParseMode.MARKDOWN)
+    	return C_R_F
     elif(chats[chat_id].player2.user == user):
 	chats[chat_id].player2.setBet(lives_bet)
 	update.message.reply_text(Strings.LIVES_BET %(name, lives_bet), parse_mode = ParseMode.MARKDOWN)
@@ -197,9 +216,10 @@ def lives(bot, update):
 	custom_keyboard = [['CALL'], ['RAISE'], ['FOLD']]
 	reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = False) #turn selective ON so just this player receives the message
 	update.message.reply_text(Strings.CALL_RAISE_FOLD, reply_markup = reply_markup, parse_mode = ParseMode.MARKDOWN)
-    else:
+   	return C_R_F
+     else:
 	update.message.reply_text(Strings.NOT_PLAYER, parse_mode = ParseMode.MARKDOWN)
-    return C_R_F
+    
 
 def error(bot, update, error):
     """Log Errors caused by Updates."""
@@ -235,6 +255,7 @@ def card(bot, update):
 		custom_keyboard = [['CHECK'], ['BET']]
 		reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = False)
 		bot.send_message(chat_id, Strings.QUESTION, reply_markup = reply_markup, parse_mode = ParseMode.MARKDOWN)
+		return BET
 		
 
 def build_menu(buttons, n_cols, header_buttons=None, footer_buttons=None):
@@ -259,23 +280,25 @@ def main():
     dp.add_handler(CommandHandler("help", help))
     dp.add_handler(CommandHandler("rules", rules))
     dp.add_handler(CommandHandler("status", status))
-    dp.add_handler(CommandHandler("participate", participate))
     dp.add_handler(CallbackQueryHandler(card))
     dp.add_handler(CommandHandler("disclaimer", disclaimer))
     dp.add_handler(CommandHandler("freeasinfreedom", freeasinfreedom))
-    dp.add_handler(CommandHandler("check", check))
     dp.add_handler(CommandHandler("quit", quit))
     dp.add_handler(CommandHandler("endgame", endgame))
     dp.add_handler(CommandHandler("scores", scores))
     dp.add_handler(CommandHandler("zawa", zawa, pass_job_queue=True, pass_chat_data=True))
     conv_handler = ConversationHandler(
-        entry_points=[RegexHandler('(^BET)$', bet)],
+        entry_points=[CommandHandler('participate', participate],
 
         states={
-            LIVES: [MessageHandler(Filters.text, lives)],
+	    PARTICIPATE: [CommandHandler('participate', participate],
+	    CARD: [CallbackQueryHandler(card)],
+	    BET_CHECK: [RegexHandler('(^BET)$', bet),
+			RegexHandler('(^CHECK)$', check)],
+            LIVES: [RegexHandler('^[0-9]+$', lives)],
   	    C_R_F: [RegexHandler('(^CALL)$', call), 
 		RegexHandler('(^RAISE)$', raiseB),
-		RegexHandler('(^FOLD)$', fold),]
+		RegexHandler('(^FOLD)$', fold)]
         },
 
         fallbacks=[CommandHandler('quit', quit)]
