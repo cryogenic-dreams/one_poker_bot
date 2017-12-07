@@ -2,7 +2,7 @@ class Player:
 	LIVES = 10
 	BET = 0
 
-	def __init__ (self, name, user, card, check):
+	def __init__ (self, name, user, card, check, reply_id):
 		self.hand = []
 		self.user = user
 		#self.id = id
@@ -11,6 +11,7 @@ class Player:
 		self.bet = Player.BET
 		self.card_played = card
 		self.check = check
+		self.reply_id = reply_id
 	
 	def displayStatus(self):
 		if (len(self.hand) > 1):
@@ -28,5 +29,3 @@ class Player:
 		if (quantity <= self.lives):
 			self.lives = self.lives - quantity
 			self.bet = self.bet + quantity
-		else:
-			return false
