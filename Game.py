@@ -23,10 +23,10 @@ class Game:
 	def giveCards(self, firstP):
 		if (firstP == 1):
 			self.player1.hand.append(self.giveCard(self.player1))
-			self.player1.hand.append(self.giveCard(self.player1))
+			self.player1.hand.append(self.giveCard(self.player2))
 		else:
 			self.player2.hand.append(self.giveCard(self.player2))
-			self.player2.hand.append(self.giveCard(self.player2))
+			self.player2.hand.append(self.giveCard(self.player1))
 
 	
 	def giveCard(self, player):
@@ -89,12 +89,23 @@ class Game:
 			self.player1.lives = self.player1.lives + self.player1.bet
 			self.player2.lives = self.player2.lives + self.player2.bet
 			
-		self.initBets()
+		self.initPlayers()
+		if result == 1:
+			self.giveCards(1)
+		elif result == 2:
+			self.giveCards(2)
+		else:	
+			self.giveCards(1)
+
 		return self.whoWon(result)
 			
-	def initBets(self):
+	def initPlayers(self):
+		self.player1.check = False
+		self.player2.check = False
 		self.player1.bet = 0
 		self.player2.bet = 0
+		self.player1.card_played = []
+		self.player2.card_played = []
 
 	def displayScores(self):
 		i = 0
