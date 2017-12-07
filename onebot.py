@@ -14,7 +14,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 chats={}
-PARTICIPATE,BET_CHECK,CARD,LIVES,C_R_F = range(4)
+PARTICIPATE,BET_CHECK,CARD,LIVES,C_R_F = range(5)
 
 def start(bot, update):
     update.message.reply_text(Strings.GREETINGS, parse_mode = ParseMode.MARKDOWN)
@@ -217,7 +217,7 @@ def lives(bot, update):
 	reply_markup = ReplyKeyboardMarkup(custom_keyboard, selective = False) #turn selective ON so just this player receives the message
 	update.message.reply_text(Strings.CALL_RAISE_FOLD, reply_markup = reply_markup, parse_mode = ParseMode.MARKDOWN)
    	return C_R_F
-     else:
+    else:
 	update.message.reply_text(Strings.NOT_PLAYER, parse_mode = ParseMode.MARKDOWN)
     
 
@@ -288,10 +288,10 @@ def main():
     dp.add_handler(CommandHandler("scores", scores))
     dp.add_handler(CommandHandler("zawa", zawa, pass_job_queue=True, pass_chat_data=True))
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('participate', participate],
+        entry_points=[CommandHandler('participate', participate)],
 
         states={
-	    PARTICIPATE: [CommandHandler('participate', participate],
+	    PARTICIPATE: [CommandHandler('participate', participate)],
 	    CARD: [CallbackQueryHandler(card)],
 	    BET_CHECK: [RegexHandler('(^BET)$', bet),
 			RegexHandler('(^CHECK)$', check)],
