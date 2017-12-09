@@ -22,14 +22,14 @@ class Game:
 	
 	def giveCards(self, firstP):
 		if (firstP == 1):
-			self.player1.hand.append(self.giveCard(self.player1))
-			self.player1.hand.append(self.giveCard(self.player2))
+			self.player1.hand.append(self.giveCard())
+			self.player2.hand.append(self.giveCard())
 		else:
-			self.player2.hand.append(self.giveCard(self.player2))
-			self.player2.hand.append(self.giveCard(self.player1))
+			self.player2.hand.append(self.giveCard())
+			self.player1.hand.append(self.giveCard())
 
 	
-	def giveCard(self, player):
+	def giveCard(self):
 		if len(self.deck) != 0:
 			return self.deck.pop()
 		else:
