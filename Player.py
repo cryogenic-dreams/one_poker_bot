@@ -12,6 +12,7 @@ class Player:
 		self.card_played = card
 		self.check = check
 		self.reply_id = reply_id
+		self.red_lives = 1
 	
 	def displayStatus(self):
 		if (len(self.hand) > 1):
