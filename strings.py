@@ -35,6 +35,8 @@ class Strings:
   WIN = '```The winner is %s ```'
   P_QUITS = '``` %s quits. Game ends.```'
   END = ' ```Game ends.```'
+  R_LIFE = '``` Will you bet your own life?```'
+  R_GAME = '``` %s\'s own life is bet. Game continues.```'
   
   #for fun
   ZAWAZAWA = 'ざわ... ざわ...'
