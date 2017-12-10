@@ -34,7 +34,7 @@ class Strings:
   CARD_REV = '``` Now revealing the cards.```'
   WIN = '```The winner is %s ```'
   P_QUITS = '``` %s quits. Game ends.```'
-  END = ' ```Game ends.```'
+  END = '``` Game ends. There are no winners.```'
   R_LIFE = '``` Will you bet your own life?```'
   R_GAME = '``` %s\'s own life is bet. Game continues.```'
   
