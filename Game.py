@@ -42,9 +42,9 @@ class Game:
 
     def winningCard(self, card1, card2):
         """
-		Returns 1 if first card wins or 2 if second card wins
-		Returns 0 if there's a tie
-		"""
+	Returns 1 if first card wins or 2 if second card wins
+	Returns 0 if there's a tie
+	"""
         self.matches.append([card1, card2])
 
         if '♣️' in card1:
@@ -120,8 +120,8 @@ class Game:
 
     def whoWon(self, number):
         """
-		Players are just numbers, after all...
-		"""
+	Players are just numbers, after all...
+	"""
         if number == 1:
             return self.player1.name + ' won.\n'
         elif number == 2:
