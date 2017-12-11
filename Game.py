@@ -16,7 +16,7 @@ class Game:
     DECK = clubs + spades + hearts + diamonds
     GAME_DECK = DECK * 3
 
-    def __init__(self, chat_id, player1, player2, matches, victories, deck):
+    def __init__(self, chat_id, player1, player2, matches, victories):
         self.chat_id = chat_id
         self.player1 = player1
         self.player2 = player2
@@ -42,9 +42,9 @@ class Game:
 
     def winningCard(self, card1, card2):
         """
-	Returns 1 if first card wins or 2 if second card wins
-	Returns 0 if there's a tie
-	"""
+		Returns 1 if first card wins or 2 if second card wins
+		Returns 0 if there's a tie
+		"""
         self.matches.append([card1, card2])
 
         if '♣️' in card1:
@@ -111,17 +111,19 @@ class Game:
         self.player2.card_played = []
 
     def displayScores(self):
-        i = 0
+        i = len(self.victories)-1
         string = ''
-        while i < len(self.victories):
-            string = '``` Round %i: %s - %s | %s - %s [RESULT: %s] ```' % (i + 1, self.player1.name, self.matches[i][0], self.player2.name, self.matches[i][1], self.whoWon(self.victories[i])) + string
-            i += 1
+        while i > -1:
+            string = '``` Round %i: [%s - %s | %s - %s] RESULT: %s ```' % (
+                i + 1, self.player1.name, self.matches[i][0].decode('utf-8'), self.player2.name, self.matches[i][1].decode('utf-8'),
+                self.whoWon(self.victories[i])) + string
+            i -= 1
         return string
 
     def whoWon(self, number):
         """
-	Players are just numbers, after all...
-	"""
+		Players are just numbers, after all...
+		"""
         if number == 1:
             return self.player1.name + ' won.\n'
         elif number == 2:
