@@ -17,11 +17,12 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 chats = {}
+PARTICIPATE, BET_CHECK, CARD, LIVES, C_R_F, Y_N = range(6)
 
 
 def start(bot, update):
     update.message.reply_text(Strings.GREETINGS, parse_mode=ParseMode.MARKDOWN)
-    update.message.reply_text(Strings.GREETINGS2)
+    update.message.reply_text(Strings.GREETINGS2, parse_mode=ParseMode.MARKDOWN)
 
 
 def help(bot, update):
@@ -51,8 +52,10 @@ def status(bot, update):
 
 
 def participate(bot, update):
-    """take id and name of the user"""
-    """after second input, start the actual game"""
+    """
+    take id and name of the user
+    after second input, start the actual game
+    """
     chat_id = update.message.chat_id
     user = update.message.from_user
     name = user.first_name
@@ -60,14 +63,14 @@ def participate(bot, update):
         update.message.reply_text(Strings.ENTRY % name,
                                   parse_mode=ParseMode.MARKDOWN)
         # create a new player
-        p1 = Player(name, user, [], False, update.message.message_id)
+        p1 = Player(name, user, update.message.message_id)
         # create a new game
-        game = Game(chat_id, p1, None, [], [], [])
+        game = Game(chat_id, p1, None)
         chats[chat_id] = game
-
+        return PARTICIPATE
     else:
         if chats[chat_id].player2 is None:
-            p2 = Player(name, user, [], False, update.message.message_id)
+            p2 = Player(name, user, update.message.message_id)
             chats[chat_id].player2 = p2
             update.message.reply_text(Strings.ENTRY % name,
                                       parse_mode=ParseMode.MARKDOWN)
@@ -79,7 +82,7 @@ def participate(bot, update):
             chats[chat_id].giveCards(1)
             # display their current UPs and DOWNs
             show_cards(bot, chat_id)
-
+            return CARD
         else:
             update.message.reply_text(Strings.ALREADY, parse_mode=ParseMode.MARKDOWN)
 
@@ -87,11 +90,13 @@ def participate(bot, update):
 def show_cards(bot, chat_id):
     bot.send_message(chat_id,
                      chats[chat_id].player1.displayStatus(),
-                     parse_mode=ParseMode.MARKDOWN, isgroup=True)
+                     parse_mode=ParseMode.MARKDOWN,
+                     isgroup=True)
 
     bot.send_message(chat_id,
                      chats[chat_id].player2.displayStatus(),
-                     parse_mode=ParseMode.MARKDOWN, isgroup=True)
+                     parse_mode=ParseMode.MARKDOWN,
+                     isgroup=True)
 
     # here the player can see his hand
     custom_keyboard = [[chats[chat_id].player1.hand[0].decode('utf-8')],
@@ -104,7 +109,9 @@ def show_cards(bot, chat_id):
                      Strings.CARDS,
                      reply_markup=reply_markup,
                      reply_to_message_id=chats[chat_id].player1.reply_id,
-                     parse_mode=ParseMode.MARKDOWN, timeout=20.0, isgroup=True)
+                     parse_mode=ParseMode.MARKDOWN,
+                     timeout=20.0,
+                     isgroup=True)
 
     custom_keyboard = [[chats[chat_id].player2.hand[0].decode('utf-8')],
                        [chats[chat_id].player2.hand[1].decode('utf-8')]]
@@ -114,7 +121,9 @@ def show_cards(bot, chat_id):
                      Strings.CARDS,
                      reply_markup=reply_markup,
                      reply_to_message_id=chats[chat_id].player2.reply_id,
-                     parse_mode=ParseMode.MARKDOWN, isgroup=True)
+                     parse_mode=ParseMode.MARKDOWN,
+                     timeout=20.0,
+                     isgroup=True)
 
     # here we create the actual selection menu of the cards so the choice remains secret
 
@@ -151,6 +160,7 @@ def bet(bot, update):
     update.message.reply_text(Strings.INPUT_BET,
                               reply_markup=reply_markup,
                               parse_mode=ParseMode.MARKDOWN)
+    return LIVES
 
 
 def check(bot, update):
@@ -162,43 +172,57 @@ def check(bot, update):
         chats[chat_id].player1.check = True
         update.message.reply_text(Strings.P_CHECKS % name,
                                   parse_mode=ParseMode.MARKDOWN)
+        return BET_CHECK
     elif chats[chat_id].player2.user == user:
         chats[chat_id].player2.check = True
         update.message.reply_text(Strings.P_CHECKS % name,
                                   parse_mode=ParseMode.MARKDOWN)
+        return BET_CHECK
     if chats[chat_id].player1.check and chats[chat_id].player2.check:
         bot.send_message(chat_id,
                          Strings.CHECK,
-                         parse_mode=ParseMode.MARKDOWN, isgroup=True)
+                         parse_mode=ParseMode.MARKDOWN,
+                         isgroup=True)
         result = chats[chat_id].manageResult(chats[chat_id].player1.card_played,
                                              chats[chat_id].player2.card_played)
         bot.send_message(chat_id,
                          result,
-                         parse_mode=ParseMode.MARKDOWN, isgroup=True)
+                         parse_mode=ParseMode.MARKDOWN,
+                         isgroup=True)
+
         if chats[chat_id].player1.lives == 0:
             if chats[chat_id].player1.red_lives == 0:
                 bot.send_message(chat_id,
                                  Strings.END,
-                                 parse_mode=ParseMode.MARKDOWN, isgroup=True)
+                                 parse_mode=ParseMode.MARKDOWN,
+                                 isgroup=True)
                 bot.send_message(chat_id,
                                  Strings.WIN % chats[chat_id].player2.name,
-                                 parse_mode=ParseMode.MARKDOWN, isgroup=True)
+                                 parse_mode=ParseMode.MARKDOWN,
+                                 isgroup=True)
+                return ConversationHandler.END
             else:
                 # wanna bet your own life?
                 red_life_bet(bot, chat_id, chats[chat_id].player1)
+                return Y_N
         elif chats[chat_id].player2.lives == 0:
             if chats[chat_id].player2.red_lives == 0:
                 bot.send_message(chat_id,
                                  Strings.END,
-                                 parse_mode=ParseMode.MARKDOWN, isgroup=True)
+                                 parse_mode=ParseMode.MARKDOWN,
+                                 isgroup=True)
                 bot.send_message(chat_id,
                                  Strings.WIN % chats[chat_id].player1.name,
-                                 parse_mode=ParseMode.MARKDOWN, isgroup=True)
+                                 parse_mode=ParseMode.MARKDOWN,
+                                 isgroup=True)
+                return ConversationHandler.END
             else:
                 # wanna bet your own life
                 red_life_bet(bot, chat_id, chats[chat_id].player2)
+                return Y_N
         else:
             show_cards(bot, chat_id)
+            return CARD
 
 
 def red_life_bet(bot, chat_id, player):
@@ -209,7 +233,8 @@ def red_life_bet(bot, chat_id, player):
                      Strings.R_LIFE,
                      reply_markup=reply_markup,
                      reply_to_message_id=player.reply_id,
-                     parse_mode=ParseMode.MARKDOWN, isgroup=True)
+                     parse_mode=ParseMode.MARKDOWN,
+                     isgroup=True)
 
 
 def chose_red_life(bot, update):
@@ -224,6 +249,7 @@ def chose_red_life(bot, update):
                              parse_mode=ParseMode.MARKDOWN, isgroup=True)
             chats[chat_id].giveCards(2)
             show_cards(bot, chat_id)
+            return CARD
         else:
             bot.send_message(chat_id,
                              Strings.END,
@@ -231,6 +257,7 @@ def chose_red_life(bot, update):
             bot.send_message(chat_id,
                              Strings.WIN % chats[chat_id].player2.name,
                              parse_mode=ParseMode.MARKDOWN, isgroup=True)
+            return ConversationHandler.END
     elif chats[chat_id].player2.lives == 0:
         if choice == 'YES':
             chats[chat_id].player2.lives = 1
@@ -240,6 +267,7 @@ def chose_red_life(bot, update):
                              parse_mode=ParseMode.MARKDOWN, isgroup=True)
             chats[chat_id].giveCards(1)
             show_cards(bot, chat_id)
+            return CARD
         else:
             bot.send_message(chat_id,
                              Strings.END,
@@ -247,6 +275,7 @@ def chose_red_life(bot, update):
             bot.send_message(chat_id,
                              Strings.WIN % chats[chat_id].player1.name,
                              parse_mode=ParseMode.MARKDOWN, isgroup=True)
+            return ConversationHandler.END
 
 
 def fold(bot, update):
@@ -256,8 +285,54 @@ def fold(bot, update):
     chat_id = update.message.chat_id
     bot.send_message(chat_id,
                      Strings.P_FOLDS % name,
-                     parse_mode=ParseMode.MARKDOWN, isgroup=True)
-    check(bot, update)
+                     parse_mode=ParseMode.MARKDOWN,
+                     isgroup=True)
+    if chats[chat_id].player1.user == user:
+        winner = 2
+    elif chats[chat_id].player2.user == user:
+        winner = 1
+    else:
+        return C_R_F
+    result = chats[chat_id].manageResult(chats[chat_id].player1.card_played,
+                                         chats[chat_id].player2.card_played, winner)
+    bot.send_message(chat_id,
+                     result,
+                     parse_mode=ParseMode.MARKDOWN,
+                     isgroup=True)
+
+    if chats[chat_id].player1.lives == 0:
+        if chats[chat_id].player1.red_lives == 0:
+            bot.send_message(chat_id,
+                             Strings.END,
+                             parse_mode=ParseMode.MARKDOWN,
+                             isgroup=True)
+            bot.send_message(chat_id,
+                             Strings.WIN % chats[chat_id].player2.name,
+                             parse_mode=ParseMode.MARKDOWN,
+                             isgroup=True)
+            return ConversationHandler.END
+        else:
+            # wanna bet your own life?
+            red_life_bet(bot, chat_id, chats[chat_id].player1)
+            return Y_N
+    elif chats[chat_id].player2.lives == 0:
+        if chats[chat_id].player2.red_lives == 0:
+            bot.send_message(chat_id,
+                             Strings.END,
+                             parse_mode=ParseMode.MARKDOWN,
+                             isgroup=True)
+            bot.send_message(chat_id,
+                             Strings.WIN % chats[chat_id].player1.name,
+                             parse_mode=ParseMode.MARKDOWN,
+                             isgroup=True)
+            return ConversationHandler.END
+        else:
+            # wanna bet your own life
+            red_life_bet(bot, chat_id, chats[chat_id].player2)
+            return Y_N
+    else:
+        show_cards(bot, chat_id)
+        return CARD
 
 
 def quit(bot, update):
@@ -267,9 +342,11 @@ def quit(bot, update):
     chat_id = update.message.chat_id
     bot.send_message(chat_id,
                      Strings.P_QUITS % name,
-                     parse_mode=ParseMode.MARKDOWN, isgroup=True)
+                     parse_mode=ParseMode.MARKDOWN,
+                     isgroup=True)
     if chat_id in chats:
         del chats[chat_id]
+        return ConversationHandler.END
 
 
 def scores(bot, update):
@@ -277,7 +354,8 @@ def scores(bot, update):
     chat_id = update.message.chat_id
     bot.send_message(chat_id,
                      chats[chat_id].displayScores(),
-                     parse_mode=ParseMode.MARKDOWN, isgroup=True)
+                     parse_mode=ParseMode.MARKDOWN,
+                     isgroup=True)
 
 
 def endgame(bot, update):
@@ -290,6 +368,7 @@ def endgame(bot, update):
                      parse_mode=ParseMode.MARKDOWN, isgroup=True)
     if chat_id in chats:
         del chats[chat_id]
+        return ConversationHandler.END
 
 
 def zawa(bot, update, job_queue, chat_data):
@@ -315,14 +394,6 @@ def zawa(bot, update, job_queue, chat_data):
         del chat_data['job']
 
 
-def call(bot, update):
-    check(bot, update)
-
-
-def raise_bet(bot, update):
-    bet(bot, update)
-
-
 def lives(bot, update):
     chat_id = update.message.chat_id
     user = update.message.from_user
@@ -341,6 +412,7 @@ def lives(bot, update):
         update.message.reply_text(Strings.CALL_RAISE_FOLD,
                                   reply_markup=reply_markup,
                                   parse_mode=ParseMode.MARKDOWN)
+        return C_R_F
 
     elif chats[chat_id].player2.user == user:
         chats[chat_id].player2.setBet(lives_bet)
@@ -354,9 +426,11 @@ def lives(bot, update):
         update.message.reply_text(Strings.CALL_RAISE_FOLD,
                                   reply_markup=reply_markup,
                                   parse_mode=ParseMode.MARKDOWN)
+        return C_R_F
     else:
         update.message.reply_text(Strings.NOT_PLAYER,
                                   parse_mode=ParseMode.MARKDOWN)
+        return LIVES
 
 
 def error(bot, update, error):
@@ -365,7 +439,6 @@ def error(bot, update, error):
 
 
 def card(bot, update):
-    print 'card'
     query = update.callback_query
     user = query.from_user
     chat_id = query.message.chat_id
@@ -374,7 +447,8 @@ def card(bot, update):
         bot.send_message(text=Strings.CARD_SELECTED.format(user.first_name),
                          chat_id=query.message.chat_id,
                          message_id=query.message.message_id,
-                         parse_mode=ParseMode.MARKDOWN, isgroup=True)
+                         parse_mode=ParseMode.MARKDOWN,
+                         isgroup=True)
 
         if chats[chat_id].player1.user == user:
             chats[chat_id].player1.card_played = chats[chat_id].player1.hand[int(selected_card)]
@@ -383,18 +457,20 @@ def card(bot, update):
         elif chats[chat_id].player2.user == user:
             chats[chat_id].player2.card_played = chats[chat_id].player2.hand[int(selected_card)]
             chats[chat_id].player2.hand.remove(chats[chat_id].player2.hand[int(selected_card)])
-
+        return CARD
     else:
         if chats[chat_id].player1.user == user and chats[chat_id].player1.card_played != []:
             bot.send_message(text=Strings.CARD_SELECTED2.format(user.first_name),
                              chat_id=query.message.chat_id,
                              message_id=query.message.message_id,
                              parse_mode=ParseMode.MARKDOWN, isgroup=True)
+            return CARD
         elif chats[chat_id].player2.user == user and chats[chat_id].player2.card_played != []:
             bot.send_message(text=Strings.CARD_SELECTED2.format(user.first_name),
                              chat_id=query.message.chat_id,
                              message_id=query.message.message_id,
                              parse_mode=ParseMode.MARKDOWN, isgroup=True)
+            return CARD
         else:
             if chats[chat_id].player1.user == user:
                 chats[chat_id].player1.card_played = chats[chat_id].player1.hand[int(selected_card)]
@@ -417,6 +493,7 @@ def card(bot, update):
                              Strings.QUESTION,
                              reply_markup=reply_markup,
                              parse_mode=ParseMode.MARKDOWN, isgroup=True)
+            return BET_CHECK
 
 
 def build_menu(buttons, n_cols, header_buttons=None, footer_buttons=None):
@@ -449,16 +526,27 @@ def main():
     dp.add_handler(CommandHandler("endgame", endgame))
     dp.add_handler(CommandHandler("scores", scores))
     dp.add_handler(CommandHandler("zawa", zawa, pass_job_queue=True, pass_chat_data=True))
-    dp.add_handler(CommandHandler('participate', participate))
-    dp.add_handler(CallbackQueryHandler(card))
-    dp.add_handler(RegexHandler('^(BET)$', bet))
-    dp.add_handler(RegexHandler('^(CHECK)$', check))
-    dp.add_handler(RegexHandler('^[0-9]+$', lives))
-    dp.add_handler(RegexHandler('^(CALL)$', call))
-    dp.add_handler(RegexHandler('^(RAISE)$', raise_bet))
-    dp.add_handler(RegexHandler('^(FOLD)$', fold))
-    dp.add_handler(RegexHandler('^(YES|NO)$', chose_red_life))
-    dp.add_handler(CommandHandler('quit', quit))
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler("participate", participate)],
+
+        states={
+            PARTICIPATE: [CommandHandler("participate", participate)],
+            CARD: [CallbackQueryHandler(card)],
+            BET_CHECK: [RegexHandler('^(BET)$', bet),
+                        RegexHandler('^(CHECK)$', check)],
+            LIVES: [RegexHandler('^[0-9]+$', lives)],
+            C_R_F: [RegexHandler('^(CALL)$', check),
+                    RegexHandler('^(RAISE)$', bet),
+                    RegexHandler('^(FOLD)$', fold)],
+            Y_N: [RegexHandler('^(YES|NO)$', chose_red_life)]
+        },
+
+        fallbacks=[CommandHandler("quit", quit)],
+        per_user=False,
+        per_chat=True
+    )
+    dp.add_handler(conv_handler)
+
     dp.add_error_handler(error)
     updater.start_polling()
     updater.idle()
