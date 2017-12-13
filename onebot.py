@@ -63,13 +63,15 @@ def participate(bot, update):
         update.message.reply_text(Strings.ENTRY % name,
                                   parse_mode=ParseMode.MARKDOWN)
         # create a new player
+
         p1 = Player(name, user, update.message.message_id)
         # create a new game
-        game = Game(chat_id, p1, None)
+        game = Game(chat_id, p1)
         chats[chat_id] = game
         return PARTICIPATE
     else:
         if chats[chat_id].player2 is None:
+
             p2 = Player(name, user, update.message.message_id)
             chats[chat_id].player2 = p2
             update.message.reply_text(Strings.ENTRY % name,
@@ -88,6 +90,11 @@ def participate(bot, update):
 
 
 def show_cards(bot, chat_id):
+    bot.send_message(chat_id,
+                     Strings.ROUND % len(chats[chat_id].victories)+1,
+                     parse_mode=ParseMode.MARKDOWN,
+                     isgroup=True)
+
     bot.send_message(chat_id,
                      chats[chat_id].player1.displayStatus(),
                      parse_mode=ParseMode.MARKDOWN,
@@ -135,7 +142,7 @@ def show_cards(bot, chat_id):
 
 
 def bet(bot, update):
-    print 'user bets'
+
     user = update.message.from_user
     name = user.first_name
     chat_id = update.message.chat_id
@@ -172,12 +179,12 @@ def check(bot, update):
         chats[chat_id].player1.check = True
         update.message.reply_text(Strings.P_CHECKS % name,
                                   parse_mode=ParseMode.MARKDOWN)
-        return BET_CHECK
+
     elif chats[chat_id].player2.user == user:
         chats[chat_id].player2.check = True
         update.message.reply_text(Strings.P_CHECKS % name,
                                   parse_mode=ParseMode.MARKDOWN)
-        return BET_CHECK
+
     if chats[chat_id].player1.check and chats[chat_id].player2.check:
         bot.send_message(chat_id,
                          Strings.CHECK,
