@@ -6,11 +6,15 @@ class Player:
                  reply_id,
                  lives=9,
                  bet=1,
-                 card=[],
+                 card=None,
                  check=False,
                  red_lives=1,
-                 hand=[]):
-        
+                 hand=None):
+
+        if card is None:
+            card = []
+        if hand is None:
+            hand = []
         self.user = user
         self.name = name
         self.lives = lives
