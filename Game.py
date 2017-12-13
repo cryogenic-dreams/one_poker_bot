@@ -21,10 +21,16 @@ class Game:
                  chat_id,
                  player1,
                  player2=None,
-                 matches=[],
-                 victories=[],
-                 bets=[]):
+                 matches=None,
+                 victories=None,
+                 bets=None):
 
+        if bets is None:
+            bets = []
+        if victories is None:
+            victories = []
+        if matches is None:
+            matches = []
         self.chat_id = chat_id
         self.player1 = player1
         self.player2 = player2
