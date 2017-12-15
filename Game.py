@@ -1,6 +1,6 @@
 # -*- encoding: utf 8 -*-
 from random import shuffle
-from Player import Player
+from strings import Strings
 
 
 class Game:
@@ -101,6 +101,7 @@ class Game:
             result = self.winningCard(card1, card2)
         else:
             result = fold  # technically this should be called winner, not fold
+            self.matches.append([card1, card2])
         self.victories.append(result)
         self.manageLives(result)
         self.initPlayers()
@@ -127,7 +128,7 @@ class Game:
         return string
 
     def displayScore(self, number):
-        return "`Round %i: [%s(bet: %i) - %s | %s(bet:%i) - %s] RESULT: %s`" % (
+        return Strings.SCORES % (
             number + 1, self.player1.name, self.bets[number][0],
             self.matches[number][0].decode('utf-8'),
             self.player2.name, self.bets[number][1],
