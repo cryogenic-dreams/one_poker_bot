@@ -8,7 +8,7 @@ from Game import Game
 from strings import Strings
 from gentlebot import MQBot
 from telegram.ext import messagequeue as mq
-
+import time
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -21,20 +21,28 @@ PARTICIPATE, BET_CHECK, CARD, LIVES, C_R_F, Y_N = range(6)
 
 
 def start(bot, update):
-    update.message.reply_text(Strings.GREETINGS, parse_mode=ParseMode.MARKDOWN)
-    update.message.reply_text(Strings.GREETINGS2, parse_mode=ParseMode.MARKDOWN)
+    chat_id = update.message.chat_id
+    bot.send_message(chat_id,
+                     Strings.GREETINGS,
+                     parse_mode=ParseMode.MARKDOWN)
+    bot.send_message(chat_id,
+                     Strings.GREETINGS2,
+                     parse_mode=ParseMode.MARKDOWN)
 
 
 def help(bot, update):
-    update.message.reply_text(Strings.HELP)
+    chat_id = update.message.chat_id
+    bot.send_message(chat_id, Strings.HELP)
 
 
 def rules(bot, update):
-    update.message.reply_text(Strings.RULES)
+    chat_id = update.message.chat_id
+    bot.send_message(chat_id, Strings.RULES)
 
 
 def disclaimer(bot, update):
-    update.message.reply_text(Strings.DISCLAIMER)
+    chat_id = update.message.chat_id
+    bot.send_message(chat_id, Strings.DISCLAIMER)
 
 
 def freeasinfreedom(bot, update):
@@ -48,6 +56,7 @@ def status(bot, update):
         bot.send_message(chat_id, Strings.NOT_STARTED, parse_mode=ParseMode.MARKDOWN)
     else:
         update.message.reply_text(chats[chat_id].player1.displayStatus(), parse_mode=ParseMode.MARKDOWN)
+        time.sleep(.5)
         update.message.reply_text(chats[chat_id].player2.displayStatus(), parse_mode=ParseMode.MARKDOWN)
 
 
@@ -60,6 +69,7 @@ def participate(bot, update):
     user = update.message.from_user
     name = user.first_name
     if chats.get(chat_id) is None:
+        time.sleep(.5)
         update.message.reply_text(Strings.ENTRY % name,
                                   parse_mode=ParseMode.MARKDOWN)
         # create a new player
@@ -71,7 +81,7 @@ def participate(bot, update):
         return PARTICIPATE
     else:
         if chats[chat_id].player2 is None:
-
+            time.sleep(.5)
             p2 = Player(name, user, update.message.message_id)
             chats[chat_id].player2 = p2
             update.message.reply_text(Strings.ENTRY % name,
@@ -91,7 +101,7 @@ def participate(bot, update):
 
 def show_cards(bot, chat_id):
     bot.send_message(chat_id,
-                     Strings.ROUND % len(chats[chat_id].victories)+1,
+                     Strings.ROUND % (len(chats[chat_id].victories)+1,),
                      parse_mode=ParseMode.MARKDOWN,
                      isgroup=True)
 
@@ -109,6 +119,7 @@ def show_cards(bot, chat_id):
     custom_keyboard = [[chats[chat_id].player1.hand[0].decode('utf-8')],
                        [chats[chat_id].player1.hand[1].decode('utf-8')]]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard,
+                                       resize_keyboard=True,
                                        selective=True)
     # turn selective ON so just this player receives the message
 
@@ -123,6 +134,7 @@ def show_cards(bot, chat_id):
     custom_keyboard = [[chats[chat_id].player2.hand[0].decode('utf-8')],
                        [chats[chat_id].player2.hand[1].decode('utf-8')]]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard,
+                                       resize_keyboard=True,
                                        selective=True)
     bot.send_message(chat_id,
                      Strings.CARDS,
@@ -158,12 +170,15 @@ def bet(bot, update):
         bet = 0
         update.message.reply_text(Strings.NOT_PLAYER,
                                   parse_mode=ParseMode.MARKDOWN)
+    time.sleep(.7)
     update.message.reply_text(Strings.P_LIVES % (name, lives),
                               parse_mode=ParseMode.MARKDOWN)
+    time.sleep(.7)
     update.message.reply_text(Strings.P_BET % (name, bet),
                               parse_mode=ParseMode.MARKDOWN)
     reply_markup = ForceReply(force_reply=True,
                               selective=True)
+    time.sleep(.7)
     update.message.reply_text(Strings.INPUT_BET,
                               reply_markup=reply_markup,
                               parse_mode=ParseMode.MARKDOWN)
@@ -179,12 +194,12 @@ def check(bot, update):
         chats[chat_id].player1.check = True
         update.message.reply_text(Strings.P_CHECKS % name,
                                   parse_mode=ParseMode.MARKDOWN)
-
+        time.sleep(.7)
     elif chats[chat_id].player2.user == user:
         chats[chat_id].player2.check = True
         update.message.reply_text(Strings.P_CHECKS % name,
                                   parse_mode=ParseMode.MARKDOWN)
-
+        time.sleep(.7)
     if chats[chat_id].player1.check and chats[chat_id].player2.check:
         bot.send_message(chat_id,
                          Strings.CHECK,
@@ -300,6 +315,7 @@ def fold(bot, update):
         winner = 1
     else:
         return C_R_F
+    # we already know the winner, but still need to process the whole match
     result = chats[chat_id].manageResult(chats[chat_id].player1.card_played,
                                          chats[chat_id].player2.card_played, winner)
     bot.send_message(chat_id,
@@ -365,19 +381,6 @@ def scores(bot, update):
                      isgroup=True)
 
 
-def endgame(bot, update):
-    """
-    End the game, like quit, but there are neither winners nor losers
-    """
-    chat_id = update.message.chat_id
-    bot.send_message(chat_id,
-                     Strings.END,
-                     parse_mode=ParseMode.MARKDOWN, isgroup=True)
-    if chat_id in chats:
-        del chats[chat_id]
-        return ConversationHandler.END
-
-
 def zawa(bot, update, job_queue, chat_data):
     """
     Every 1 to 10 minutes (randomly) bot posts a zawa (ざわ) message.
@@ -411,7 +414,7 @@ def lives(bot, update):
         chats[chat_id].player1.setBet(lives_bet)
         update.message.reply_text(Strings.LIVES_BET % (name, lives_bet),
                                   parse_mode=ParseMode.MARKDOWN)
-
+        time.sleep(.7)
         custom_keyboard = [['CALL'], ['RAISE'], ['FOLD']]
         reply_markup = ReplyKeyboardMarkup(custom_keyboard,
                                            selective=False)
@@ -419,13 +422,14 @@ def lives(bot, update):
         update.message.reply_text(Strings.CALL_RAISE_FOLD,
                                   reply_markup=reply_markup,
                                   parse_mode=ParseMode.MARKDOWN)
+        time.sleep(.7)
         return C_R_F
 
     elif chats[chat_id].player2.user == user:
         chats[chat_id].player2.setBet(lives_bet)
         update.message.reply_text(Strings.LIVES_BET % (name, lives_bet),
                                   parse_mode=ParseMode.MARKDOWN)
-
+        time.sleep(.7)
         custom_keyboard = [['CALL'], ['RAISE'], ['FOLD']]
         reply_markup = ReplyKeyboardMarkup(custom_keyboard,
                                            selective=False)
@@ -433,6 +437,7 @@ def lives(bot, update):
         update.message.reply_text(Strings.CALL_RAISE_FOLD,
                                   reply_markup=reply_markup,
                                   parse_mode=ParseMode.MARKDOWN)
+        time.sleep(.7)
         return C_R_F
     else:
         update.message.reply_text(Strings.NOT_PLAYER,
@@ -530,7 +535,6 @@ def main():
     dp.add_handler(CommandHandler("status", status))
     dp.add_handler(CommandHandler("disclaimer", disclaimer))
     dp.add_handler(CommandHandler("freeasinfreedom", freeasinfreedom))
-    dp.add_handler(CommandHandler("endgame", endgame))
     dp.add_handler(CommandHandler("scores", scores))
     dp.add_handler(CommandHandler("zawa", zawa, pass_job_queue=True, pass_chat_data=True))
     conv_handler = ConversationHandler(
