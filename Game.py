@@ -171,3 +171,8 @@ class Game:
             
     def update_max_bet(self):
         self.max_bet = min(self.player1.lives, self.player2.lives)
+    
+    def manage_bets(self, player, quantity):
+        if(self.max_bets >= quantity):
+            player.setBet(quantity)
+            self.update_max_bet()
