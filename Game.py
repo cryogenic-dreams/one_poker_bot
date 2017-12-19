@@ -23,7 +23,8 @@ class Game:
                  player2=None,
                  matches=None,
                  victories=None,
-                 bets=None):
+                 bets=None,
+                 max_bet=0):
 
         if bets is None:
             bets = []
@@ -39,6 +40,7 @@ class Game:
         self.matches = matches
         self.bets = bets
         self.victories = victories
+        self.max_bet = max_bet
 
     def giveCards(self, first_player):
         if first_player == 1:
@@ -166,3 +168,6 @@ class Game:
             self.giveCards(2)
         else:
             self.giveCards(1)
+            
+    def update_max_bet(self):
+        self.max_bet = min(self.player1.lives, self.player2.lives)
