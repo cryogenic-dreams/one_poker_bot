@@ -24,7 +24,7 @@ class Game:
                  matches=None,
                  victories=None,
                  bets=None,
-                 max_bet=0):
+                 max_bet=9):
 
         if bets is None:
             bets = []
