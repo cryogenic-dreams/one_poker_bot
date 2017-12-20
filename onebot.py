@@ -247,6 +247,73 @@ def check(bot, update):
             return CARD
 
 
+def call(bot, update):
+    user = update.message.from_user
+    name = user.first_name
+    chat_id = update.message.chat_id
+
+    if chats[chat_id].player1.user == user:
+        chats[chat_id].manage_bet(chats[chat_id].player1,
+                                  chats[chat_id].player1.bet - chats[chat_id].player2.bet)
+        chats[chat_id].player1.check = True
+        update.message.reply_text(Strings.P_CALLS % name,
+                                  parse_mode=ParseMode.MARKDOWN)
+
+        time.sleep(.7)
+    elif chats[chat_id].player2.user == user:
+        chats[chat_id].manage_bet(chats[chat_id].player2,
+                                  chats[chat_id].player2.bet - chats[chat_id].player1.bet)
+        chats[chat_id].player2.check = True
+        update.message.reply_text(Strings.P_CALLS % name,
+                                  parse_mode=ParseMode.MARKDOWN)
+        time.sleep(.7)
+    if chats[chat_id].player1.check and chats[chat_id].player2.check:
+        bot.send_message(chat_id,
+                         Strings.CHECK,
+                         parse_mode=ParseMode.MARKDOWN,
+                         isgroup=True)
+        result = chats[chat_id].manageResult(chats[chat_id].player1.card_played,
+                                             chats[chat_id].player2.card_played)
+        bot.send_message(chat_id,
+                         result,
+                         parse_mode=ParseMode.MARKDOWN,
+                         isgroup=True)
+
+        if chats[chat_id].player1.lives == 0:
+            if chats[chat_id].player1.red_lives == 0:
+                bot.send_message(chat_id,
+                                 Strings.END,
+                                 parse_mode=ParseMode.MARKDOWN,
+                                 isgroup=True)
+                bot.send_message(chat_id,
+                                 Strings.WIN % chats[chat_id].player2.name,
+                                 parse_mode=ParseMode.MARKDOWN,
+                                 isgroup=True)
+                return ConversationHandler.END
+            else:
+                # wanna bet your own life?
+                red_life_bet(bot, chat_id, chats[chat_id].player1)
+                return Y_N
+        elif chats[chat_id].player2.lives == 0:
+            if chats[chat_id].player2.red_lives == 0:
+                bot.send_message(chat_id,
+                                 Strings.END,
+                                 parse_mode=ParseMode.MARKDOWN,
+                                 isgroup=True)
+                bot.send_message(chat_id,
+                                 Strings.WIN % chats[chat_id].player1.name,
+                                 parse_mode=ParseMode.MARKDOWN,
+                                 isgroup=True)
+                return ConversationHandler.END
+            else:
+                # wanna bet your own life
+                red_life_bet(bot, chat_id, chats[chat_id].player2)
+                return Y_N
+        else:
+            show_cards(bot, chat_id)
+            return CARD
+
+
 def red_life_bet(bot, chat_id, player):
     custom_keyboard = [['YES'], ['NO']]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard,
@@ -411,7 +478,7 @@ def lives(bot, update):
     name = user.first_name
 
     if chats[chat_id].player1.user == user:
-        chats[chat_id].player1.setBet(lives_bet)
+        chats[chat_id].manage_bet(chats[chat_id].player1, lives_bet)
         update.message.reply_text(Strings.LIVES_BET % (name, lives_bet),
                                   parse_mode=ParseMode.MARKDOWN)
         time.sleep(.7)
@@ -426,7 +493,7 @@ def lives(bot, update):
         return C_R_F
 
     elif chats[chat_id].player2.user == user:
-        chats[chat_id].player2.setBet(lives_bet)
+        chats[chat_id].manage_bet(chats[chat_id].player2, lives_bet)
         update.message.reply_text(Strings.LIVES_BET % (name, lives_bet),
                                   parse_mode=ParseMode.MARKDOWN)
         time.sleep(.7)
@@ -546,7 +613,7 @@ def main():
             BET_CHECK: [RegexHandler('^(BET)$', bet),
                         RegexHandler('^(CHECK)$', check)],
             LIVES: [RegexHandler('^[0-9]+$', lives)],
-            C_R_F: [RegexHandler('^(CALL)$', check),
+            C_R_F: [RegexHandler('^(CALL)$', call),
                     RegexHandler('^(RAISE)$', bet),
                     RegexHandler('^(FOLD)$', fold)],
             Y_N: [RegexHandler('^(YES|NO)$', chose_red_life)]
