@@ -109,7 +109,7 @@ class Game:
         self.initPlayers()
         self.manageCards(result)
 
-        return self.displayScore(len(self.victories)-1)
+        return self.displayScore(len(self.victories) - 1)
 
     def initPlayers(self):
         self.player1.check = False
@@ -168,11 +168,12 @@ class Game:
             self.giveCards(2)
         else:
             self.giveCards(1)
-            
-    def update_max_bet(self):
-        self.max_bet = min(self.player1.lives, self.player2.lives)
-    
-    def manage_bets(self, player, quantity):
-        if(self.max_bets >= quantity):
+
+    def update_max_bet(self, player, rival):
+        self.max_bet = min(rival.lives + rival.bet - player.bet, player.lives)
+
+    def manage_bets(self, player, rival, quantity):
+        self.update_max_bet(player, rival)
+        if self.max_bet >= quantity:
             player.setBet(quantity)
-            self.update_max_bet()
+            player.check = False
