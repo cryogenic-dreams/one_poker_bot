@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
+# -*- encoding: utf 8 -*-
 class Strings:
 
   TOKEN = "___YOURBOTSTOKEN___" #write here your bot's token
-  GREETINGS = "`Welcome to One Poker. If you wish to participate, enter the command` /participate"
-  GREETINGS2 = "`Type` /rules `for an explanation of the game mechanics and` /help `to know the commands of this bot. Type` /disclaimer `to know further.`"
+  GREETINGS = "`Welcome to One Poker. If you wish to participate press the Play button. `"
   RULES = "One Poker is a game in which two people play following these rules:\n1. Both of you will receive 10 lives, you can bet a minimum of 1 life in each round and a maximum of the lives you have at that moment.\n2.The game uses three decks of poker without the joker card, when . \n 3. Each player will receive 2 cards and will have in his hand always 2 cards. \n 4. The value of the cards is determined by its number, being DOWN cards: 2, 3, 4, 5, 6, 7 and UP cards: 8, 9, 10, J, Q, K, A. \n 5. The winning card is always the highest with the exception of the 2 that wins the Ace. \n 6. Once players receive their cards, both of them will be informed if they have UP or DOWN cards in their hand. \n 7. The game ends when one of the players loses all the lives.\n "
   HELP = "Here is a list of all the commands Mother Sophie has:\n /disclaimer\n /freeasinfreedom - Link to the code in github.\n help - This command.\n /participate - Starts a new game.\n /quit - Players cannot quit One Poker irl but here you can.\n /rules\n /scores - Display how the game goes so far, including cards, victories and bets. \n /start\n /status - UPs and DOWNS\n /zawa\n"
   DISCLAIMER = "I do not own any of names or refences made of the manga neither the original gameplay idea of One Poker."
@@ -15,6 +14,7 @@ class Strings:
   ROUND = "`Hand %i:`"
   CARDS = "`These are your cards.`"
   SELECT_CARD = "`Please select your card.`"
+  MENU0 = "`Choose from the menu.`"
   MENU1 = "Select 1st card"
   MENU2 = "Select 2nd card"
   CARD_SELECTED = "`{}\'s card received.`"
@@ -22,8 +22,6 @@ class Strings:
   SELECTION_COMPLETED = "`Card selection has been completed.\nNow proceeding to betting phase.`"
   QUESTION = "`Check or bet?`"
   NOT_PLAYER = "`You are not a player.`"
-  P_LIVES = "`%s have: %i lives.`"
-  P_BET = "`%s have bet: %i lives.`"
   INPUT_BET = "`Input lives to bet.`"
   CHECK = "`Both players check.\nNow revealing the cards.`"
   P_FOLDS = "`%s folds.`"
@@ -42,13 +40,14 @@ class Strings:
 
   #for fun
   ZAWAZAWA = "ざわ... ざわ..."
+  DOTS = "💬"
   NATURAL = "It\'s only natural."
   MEAN = "What does it mean to gamble? What does it..."
   PRESSURE = "THE PRESSURE... it\'s crushing!"
   BUT = "But..."
   STILL = "Still!"
   KUYASHII = "KUYASHII"
-  CATCH = [ZAWAZAWA, NATURAL, MEAN, KUYASHII, STILL, BUT, PRESSURE, ZAWAZAWA, ZAWAZAWA]#extra zawas, just because
+  CATCH = [ZAWAZAWA, NATURAL, MEAN, KUYASHII, STILL, BUT, PRESSURE, ZAWAZAWA, ZAWAZAWA, DOTS]#extra zawas, just because
   ZAWA_ON = "`Zawa mode switched ON`"
   ZAWA_OFF = "`Zawa mode switched OFF`"
   NOISE = "*kzzt*"
